@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Route, MessageSquare, Mail, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,9 @@ function isEmailValid(v: string) {
 /* ── component ── */
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan") || "free";
+
   const [tab, setTab] = useState<"whatsapp" | "email">("whatsapp");
 
   // whatsapp state
@@ -40,6 +43,12 @@ export default function Auth() {
 
   // countdown
   const [countdown, setCountdown] = useState(0);
+
+  // fade-in
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -60,8 +69,9 @@ export default function Auth() {
     setLoadingWa(true);
     await new Promise((r) => setTimeout(r, 1000));
     setLoadingWa(false);
-    navigate("/");
-  }, [navigate]);
+    // New user → onboarding with plan param
+    navigate(`/onboarding?plan=${plan}`);
+  }, [navigate, plan]);
 
   const handleMagicLink = useCallback(async () => {
     setLoadingEmail(true);
@@ -84,9 +94,18 @@ export default function Auth() {
     setCountdown(60);
   }, [countdown, tab]);
 
+  const planLabel =
+    plan === "annual" ? "Empreendedor (Anual)" :
+    plan === "monthly" ? "Profissional (Mensal)" :
+    "Iniciante (Grátis)";
+
   /* ── render ── */
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background">
+    <div
+      className={`min-h-screen flex flex-col items-center justify-center px-4 bg-background transition-opacity duration-500 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
+    >
       {/* branding */}
       <div className="flex flex-col items-center gap-2 mb-8">
         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -98,6 +117,11 @@ export default function Auth() {
         <p className="text-sm text-muted-foreground text-center max-w-xs">
           Sua central de comando como instrutor independente.
         </p>
+        {plan !== "free" && (
+          <span className="text-xs text-primary font-medium bg-primary/10 px-3 py-1 rounded-full">
+            Plano selecionado: {planLabel}
+          </span>
+        )}
       </div>
 
       {/* card */}
@@ -106,7 +130,6 @@ export default function Auth() {
           value={tab}
           onValueChange={(v) => {
             setTab(v as "whatsapp" | "email");
-            // reset states on tab change
             setOtpSent(false);
             setMagicSent(false);
             setOtp("");
@@ -280,7 +303,7 @@ export default function Auth() {
         <p className="text-xs text-muted-foreground">
           Ainda não tem conta?{" "}
           <span className="text-primary font-medium cursor-pointer hover:underline">
-            Comece seu teste de 7 dias.
+            Comece seu teste grátis agora.
           </span>
         </p>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +7,8 @@ import { Slider } from "@/components/ui/slider";
 import {
   Car, FileText, Calculator, Shield, Zap, Users, TrendingUp,
   CheckCircle, ChevronRight, Star, Smartphone, BarChart3,
-  Clock, DollarSign, Award, ArrowRight, HelpCircle, ChevronDown,
-  MapPin, Crown, Sparkles, Lock,
+  Clock, DollarSign, Award, ArrowRight, ChevronDown,
+  Crown, Sparkles,
 } from "lucide-react";
 import {
   Collapsible,
@@ -83,8 +84,10 @@ const PLAN_PRO_FEATURES = [
 ];
 
 export default function Landing() {
+  const navigate = useNavigate();
   const [lessonsPerDay, setLessonsPerDay] = useState(4);
   const [pricePerLesson, setPricePerLesson] = useState(140);
+  const [leaving, setLeaving] = useState(false);
 
   const workDays = 22;
   const monthlyGross = lessonsPerDay * pricePerLesson * workDays;
@@ -93,8 +96,17 @@ export default function Landing() {
   const softwareCost = 39.9;
   const softwarePercent = ((softwareCost / monthlyNet) * 100).toFixed(2);
 
+  const goToAuth = (plan: string) => {
+    setLeaving(true);
+    setTimeout(() => navigate(`/auth?plan=${plan}`), 400);
+  };
+
   return (
-    <div className="min-h-screen bg-[hsl(222,47%,5%)] text-[hsl(210,20%,92%)]">
+    <div
+      className={`min-h-screen bg-[hsl(222,47%,5%)] text-[hsl(210,20%,92%)] transition-opacity duration-400 ${
+        leaving ? "opacity-0" : "opacity-100"
+      }`}
+    >
       {/* ─── NAV ─── */}
       <nav className="sticky top-0 z-50 border-b border-[hsl(222,20%,12%)] bg-[hsl(222,47%,5%)]/90 backdrop-blur-xl">
         <div className="container flex items-center justify-between py-4">
@@ -104,7 +116,10 @@ export default function Landing() {
             </div>
             <span className="text-lg font-bold tracking-tight">SoloDrive</span>
           </div>
-          <Button className="bg-[hsl(239,84%,67%)] hover:bg-[hsl(239,84%,57%)] text-white font-semibold text-sm px-5">
+          <Button
+            className="bg-[hsl(239,84%,67%)] hover:bg-[hsl(239,84%,57%)] text-white font-semibold text-sm px-5"
+            onClick={() => goToAuth("free")}
+          >
             Começar Grátis
           </Button>
         </div>
@@ -132,6 +147,7 @@ export default function Landing() {
             <Button
               size="lg"
               className="bg-[hsl(160,84%,39%)] hover:bg-[hsl(160,84%,34%)] text-white font-bold text-base h-13 px-8 rounded-xl shadow-[0_0_30px_hsl(160,84%,39%,0.3)]"
+              onClick={() => goToAuth("free")}
             >
               Começar Agora (Grátis)
               <ArrowRight className="w-5 h-5 ml-1" />
@@ -292,7 +308,6 @@ export default function Landing() {
 
         <Card className="max-w-xl mx-auto bg-[hsl(222,30%,8%)] border-[hsl(222,20%,14%)]">
           <CardContent className="p-6 md:p-8 space-y-8">
-            {/* Lessons/day */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-[hsl(210,20%,85%)]">Aulas por dia</label>
@@ -301,9 +316,7 @@ export default function Landing() {
               <Slider
                 value={[lessonsPerDay]}
                 onValueChange={(v) => setLessonsPerDay(v[0])}
-                min={1}
-                max={10}
-                step={1}
+                min={1} max={10} step={1}
                 className="[&_[data-orientation=horizontal]]:h-2 [&_[role=slider]]:bg-[hsl(239,84%,67%)] [&_[role=slider]]:border-[hsl(239,84%,67%)] [&_.bg-primary]:bg-[hsl(239,84%,67%)]"
               />
               <div className="flex justify-between text-[10px] text-[hsl(215,15%,45%)]">
@@ -311,7 +324,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Price/lesson */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-[hsl(210,20%,85%)]">Valor por aula</label>
@@ -320,9 +332,7 @@ export default function Landing() {
               <Slider
                 value={[pricePerLesson]}
                 onValueChange={(v) => setPricePerLesson(v[0])}
-                min={80}
-                max={250}
-                step={10}
+                min={80} max={250} step={10}
                 className="[&_[data-orientation=horizontal]]:h-2 [&_[role=slider]]:bg-[hsl(239,84%,67%)] [&_[role=slider]]:border-[hsl(239,84%,67%)] [&_.bg-primary]:bg-[hsl(239,84%,67%)]"
               />
               <div className="flex justify-between text-[10px] text-[hsl(215,15%,45%)]">
@@ -330,7 +340,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Results */}
             <div className="space-y-3 pt-4 border-t border-[hsl(222,20%,14%)]">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[hsl(215,15%,55%)]">Faturamento bruto/mês</span>
@@ -351,7 +360,6 @@ export default function Landing() {
                 </span>
               </div>
 
-              {/* Software cost comparison */}
               <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(239,84%,67%)]/10 mt-2">
                 <Sparkles className="w-5 h-5 text-[hsl(239,84%,67%)] shrink-0" />
                 <div className="text-sm">
@@ -402,6 +410,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   className="w-full h-11 border-[hsl(222,20%,18%)] text-[hsl(210,20%,85%)] hover:bg-[hsl(222,20%,14%)] font-semibold"
+                  onClick={() => goToAuth("free")}
                 >
                   Começar Grátis
                 </Button>
@@ -443,7 +452,10 @@ export default function Landing() {
                 <p className="text-xs text-center text-[hsl(160,84%,39%)] font-medium">
                   💡 Custa menos que 1 única aula de reforço por mês!
                 </p>
-                <Button className="w-full h-11 bg-[hsl(239,84%,67%)] hover:bg-[hsl(239,84%,57%)] text-white font-bold shadow-lg shadow-[hsl(239,84%,67%)]/25">
+                <Button
+                  className="w-full h-11 bg-[hsl(239,84%,67%)] hover:bg-[hsl(239,84%,57%)] text-white font-bold shadow-lg shadow-[hsl(239,84%,67%)]/25"
+                  onClick={() => goToAuth("annual")}
+                >
                   Assinar Plano Anual
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -472,6 +484,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   className="w-full h-11 border-[hsl(222,20%,18%)] text-[hsl(210,20%,85%)] hover:bg-[hsl(222,20%,14%)] font-semibold"
+                  onClick={() => goToAuth("monthly")}
                 >
                   Assinar Plano Mensal
                 </Button>
@@ -522,6 +535,7 @@ export default function Landing() {
         <Button
           size="lg"
           className="bg-[hsl(160,84%,39%)] hover:bg-[hsl(160,84%,34%)] text-white font-bold text-base h-13 px-10 rounded-xl shadow-[0_0_40px_hsl(160,84%,39%,0.3)]"
+          onClick={() => goToAuth("free")}
         >
           Começar Agora (Grátis)
           <ArrowRight className="w-5 h-5 ml-1" />
