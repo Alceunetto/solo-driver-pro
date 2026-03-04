@@ -196,6 +196,7 @@ export default function Prontuario() {
           date: new Date().toLocaleDateString("pt-BR"),
           duration: 50,
           km: 15,
+          phone: "(11) 99999-9999",
           skills: skills.map((s) => ({ name: s.name, value: s.value })),
           averageProgress,
           evolution: totalEvolution,
