@@ -75,6 +75,8 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
   const [feedback, setFeedback] = useState(
     "Continue praticando os pontos que precisam de atenção. Você está evoluindo muito bem!"
   );
+  const [strengths, setStrengths] = useState("Controle de embreagem\nUso de retrovisores");
+  const [improvements, setImprovements] = useState("Baliza\nControle de ansiedade");
   const [showValue, setShowValue] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [manualCopyText, setManualCopyText] = useState<string | null>(null);
@@ -84,9 +86,13 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
     .sort((a, b) => b.value - a.value)
     .slice(0, 3);
 
+  const parseLines = (text: string) =>
+    text.split("\n").map((l) => l.trim()).filter(Boolean);
+
   /* ── WhatsApp text share ── */
   const getShareMessage = useCallback(() => {
-    const skillsList = topSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n");
+    const strengthsList = parseLines(strengths).map((s) => `  • ${s}`).join("\n");
+    const improvementsList = parseLines(improvements).map((s) => `  • ${s}`).join("\n");
     const kmLine = data.km ? `\n🛣️ *KM:* ${data.km}` : "";
     const valueLine =
       showValue && data.lessonValue
@@ -95,18 +101,17 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
 
     return (
       `🚗 *Relatório de Evolução - SoloDrive*\n\n` +
-      `Olá, *${data.studentName}*! Veja seu desempenho na aula de hoje:\n\n` +
-      `✅ *Habilidades Treinadas:*\n` +
-      `${skillsList}\n\n` +
-      `📈 *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
+      `Olá, *${data.studentName}*! Veja seu resumo da aula de hoje:\n\n` +
+      `💪 *Pontos Fortes:*\n${strengthsList}\n\n` +
+      `⚠️ *Pontos a Melhorar:*\n${improvementsList}\n\n` +
+      `📈 *Evolução Pedagógica:* ${data.averageProgress}% (+${data.evolution}%)\n` +
       `⏱️ *Duração:* ${data.duration} min` +
-      `${kmLine}` +
-      `${valueLine}\n\n` +
-      `💡 *Dica:* ${feedback}\n\n` +
-      `🏁 Sua aprovação está próxima!\n\n` +
+      `${kmLine}${valueLine}\n\n` +
+      `💡 *Recado do Instrutor:* ${feedback}\n\n` +
+      `🏁 Sua aprovação é o nosso objetivo!\n\n` +
       `_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`
     );
-  }, [data, feedback, showValue, topSkills]);
+  }, [data, feedback, showValue, strengths, improvements]);
 
   const openWhatsApp = useCallback((phone: string) => {
     const link = document.createElement("a");
@@ -299,6 +304,34 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
             </div>
           </div>
 
+          {/* strengths */}
+          {parseLines(strengths).length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#16a34a", marginBottom: 6 }}>
+                💪 Pontos Fortes
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {parseLines(strengths).map((s, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "#334155" }}>• {s}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* improvements */}
+          {parseLines(improvements).length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#f59e0b", marginBottom: 6 }}>
+                ⚠️ Pontos a Melhorar
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {parseLines(improvements).map((s, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "#334155" }}>• {s}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* skills */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", marginBottom: 10 }}>
@@ -322,7 +355,7 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
             }}
           >
             <div style={{ fontSize: 11, fontWeight: 600, color: "#16a34a", marginBottom: 4 }}>
-              💡 Dica do Instrutor
+              💡 Recado do Instrutor
             </div>
             <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.5 }}>
               {feedback}
@@ -364,9 +397,33 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
 
         {/* ── Controls (outside exportable area) ── */}
         <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
+          {/* strengths input */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">💪 Pontos Fortes (um por linha)</Label>
+            <Textarea
+              value={strengths}
+              onChange={(e) => setStrengths(e.target.value)}
+              rows={2}
+              className="resize-none text-sm"
+              placeholder="Controle de embreagem&#10;Uso de retrovisores"
+            />
+          </div>
+
+          {/* improvements input */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">⚠️ Pontos a Melhorar (um por linha)</Label>
+            <Textarea
+              value={improvements}
+              onChange={(e) => setImprovements(e.target.value)}
+              rows={2}
+              className="resize-none text-sm"
+              placeholder="Baliza&#10;Controle de ansiedade"
+            />
+          </div>
+
           {/* feedback input */}
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">Feedback do Instrutor</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">💡 Recado do Instrutor</Label>
             <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
