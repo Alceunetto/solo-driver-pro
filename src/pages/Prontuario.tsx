@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, Share2, TrendingUp, Star, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PerformanceReport } from "@/components/PerformanceReport";
 
 interface Skill {
   id: string;
@@ -40,6 +41,7 @@ const mockTimeline: TimelineEntry[] = [
 export default function Prontuario() {
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [selectedStudent] = useState("Maria Silva");
+  const [reportOpen, setReportOpen] = useState(false);
   const { toast } = useToast();
 
   const averageProgress = Math.round(
@@ -57,17 +59,7 @@ export default function Prontuario() {
   };
 
   const generateReport = () => {
-    const topSkills = [...skills].sort((a, b) => b.value - a.value).slice(0, 3);
-    const weakSkills = [...skills].sort((a, b) => a.value - b.value).slice(0, 2);
-
-    const message = `📊 *Relatório de Evolução - SoloDrive*\n\n👤 Aluno(a): ${selectedStudent}\n📅 Data: ${new Date().toLocaleDateString("pt-BR")}\n\n📈 *Progresso Geral: ${averageProgress}%*\n🚀 Evolução da sessão: +${totalEvolution}%\n\n✅ *Pontos Fortes:*\n${topSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n")}\n\n⚠️ *Pontos a Melhorar:*\n${weakSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n")}\n\n💪 Continue praticando! Você está evoluindo!`;
-
-    navigator.clipboard.writeText(message).then(() => {
-      toast({
-        title: "Relatório copiado!",
-        description: "Cole no WhatsApp para enviar ao aluno.",
-      });
-    });
+    setReportOpen(true);
   };
 
   const getSkillColor = (value: number) => {
@@ -193,6 +185,23 @@ export default function Prontuario() {
         <Share2 className="w-5 h-5 mr-2" />
         Gerar Relatório de Evolução
       </Button>
+
+      {/* Report Modal */}
+      <PerformanceReport
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        data={{
+          studentName: selectedStudent,
+          instructorName: "Instrutor Marcelo",
+          date: new Date().toLocaleDateString("pt-BR"),
+          duration: 50,
+          km: 15,
+          skills: skills.map((s) => ({ name: s.name, value: s.value })),
+          averageProgress,
+          evolution: totalEvolution,
+          lessonValue: 140,
+        }}
+      />
     </div>
   );
 }
