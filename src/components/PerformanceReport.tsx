@@ -84,17 +84,43 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
 
   /* ── WhatsApp text share ── */
   const shareWhatsApp = useCallback(() => {
-    const skillsList = topSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n");
-    const valueLine = showValue && data.lessonValue
-      ? `\n💰 Valor da aula: R$ ${data.lessonValue.toFixed(2)}`
-      : "";
+    const skillsList = topSkills
+      .map((s) => "  \u2022 " + s.name + ": " + s.value + "%")
+      .join("\n");
 
-    const msg = `🚗 *Relatório de Evolução - SoloDrive* 🚗\n\nOlá, ${data.studentName}! Veja seu desempenho na aula de hoje:\n\n✅ *Habilidades Treinadas:*\n${skillsList}\n\n📈 Nível de Evolução: ${data.averageProgress}% (+${data.evolution}%)\n⏱️ Duração: ${data.duration} min${data.km ? `\n🛣️ KM rodado: ${data.km}` : ""}${valueLine}\n\n💡 *Dica do Instrutor:*\n${feedback}\n\nContinue focado! Sua aprovação está próxima. 🏁\n\n_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`;
+    const lines: string[] = [
+      "\uD83D\uDE97 *Relat\u00F3rio de Evolu\u00E7\u00E3o - SoloDrive* \uD83D\uDE97",
+      "",
+      "Ol\u00E1, *" + data.studentName + "*! Veja seu desempenho na aula de hoje:",
+      "",
+      "\u2705 *Habilidades Treinadas:*",
+      skillsList,
+      "",
+      "\uD83D\uDCC8 N\u00EDvel de Evolu\u00E7\u00E3o: " + data.averageProgress + "% (+" + data.evolution + "%)",
+      "\u23F1\uFE0F Dura\u00E7\u00E3o: " + data.duration + " min",
+    ];
 
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(msg)}`,
-      "_blank"
+    if (data.km) {
+      lines.push("\uD83D\uDEE3\uFE0F KM rodado: " + data.km);
+    }
+
+    if (showValue && data.lessonValue) {
+      lines.push("\uD83D\uDCB0 Valor da aula: R$ " + data.lessonValue.toFixed(2));
+    }
+
+    lines.push(
+      "",
+      "\uD83D\uDCA1 *Dica do Instrutor:*",
+      feedback,
+      "",
+      "Continue focado! Sua aprova\u00E7\u00E3o est\u00E1 pr\u00F3xima. \uD83C\uDFC1",
+      "",
+      "_Treinado por " + data.instructorName + " \u2014 O padr\u00E3o ouro em instru\u00E7\u00E3o independente._"
     );
+
+    const message = lines.join("\n");
+    const encoded = encodeURIComponent(message);
+    window.open("https://wa.me/?text=" + encoded, "_blank");
   }, [data, feedback, showValue, topSkills]);
 
   /* ── Image export ── */
