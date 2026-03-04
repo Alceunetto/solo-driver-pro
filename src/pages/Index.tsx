@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
   Clock, MapPin, Play, ChevronRight, AlertTriangle, Award,
-  ArrowUpRight, ArrowDownRight, Wrench, Users,
+  ArrowUpRight, ArrowDownRight, Wrench, Users, Lock, Plus, Crown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import { TimelineLogistica } from "@/components/TimelineLogistica";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { useToast } from "@/hooks/use-toast";
 
 /* ── mock data ── */
 const WEEKLY_DATA = [
@@ -28,7 +31,6 @@ const STUDENTS = [
   { name: "Carlos Silva", progress: 75, paid: true, lessons: 8 },
   { name: "Ana Oliveira", progress: 45, paid: false, lessons: 4 },
   { name: "Pedro Santos", progress: 90, paid: true, lessons: 18 },
-  { name: "Juliana Costa", progress: 30, paid: true, lessons: 3 },
 ];
 
 const NEXT_LESSONS = [
@@ -54,6 +56,23 @@ const Index = () => {
   const [isDark, setIsDark] = useState(true);
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Simulated plan state (will come from DB later)
+  const userPlan = "free";
+  const studentLimit = 3;
+  const studentCount = STUDENTS.length;
+  const isAtLimit = userPlan === "free" && studentCount >= studentLimit;
+
+  const handleAddStudent = () => {
+    if (isAtLimit) {
+      setUpgradeOpen(true);
+    } else {
+      // TODO: open add student form
+      toast({ title: "Novo aluno", description: "Formulário em breve!" });
+    }
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -317,10 +336,22 @@ const Index = () => {
 
         {/* ── Radar de Alunos ── */}
         <Card className="border-border/50">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" /> Radar de Alunos
+              {userPlan === "free" && (
+                <Badge variant="secondary" className="text-[10px]">
+                  {studentCount}/{studentLimit}
+                </Badge>
+              )}
             </CardTitle>
+            <Button
+              size="sm"
+              className="gap-1 text-xs h-8"
+              onClick={handleAddStudent}
+            >
+              <Plus className="w-3 h-3" /> Novo Aluno
+            </Button>
           </CardHeader>
           <CardContent className="space-y-3 pb-4">
             {STUDENTS.map((s) => (
@@ -341,12 +372,35 @@ const Index = () => {
                 <p className="text-[10px] text-muted-foreground">{s.lessons} aulas realizadas</p>
               </div>
             ))}
+
+            {/* Locked card for free plan */}
+            {isAtLimit && (
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="w-full p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/40 transition-colors flex items-center gap-3 group"
+              >
+                <div className="p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                  <Lock className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                    Desbloqueie mais vagas
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Assine o Plano Empreendedor para alunos ilimitados
+                  </p>
+                </div>
+                <Crown className="w-4 h-4 text-accent ml-auto shrink-0" />
+              </button>
+            )}
           </CardContent>
         </Card>
 
         {/* ── Timeline Logística (existing) ── */}
         <TimelineLogistica />
       </main>
+
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </div>
   );
 };
