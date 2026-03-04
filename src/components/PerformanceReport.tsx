@@ -22,6 +22,7 @@ interface ReportData {
   date: string;
   duration: number;
   km?: number;
+  phone?: string;
   skills: Skill[];
   averageProgress: number;
   evolution: number;
@@ -84,31 +85,45 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
 
   /* ── WhatsApp text share ── */
   const shareWhatsApp = useCallback(() => {
-    const skillsList = topSkills
-      .map((s) => `  • ${s.name}: ${s.value}%`)
-      .join("\n");
+    const iconCar = "\u{1F697}";
+    const iconCheck = "\u{2705}";
+    const iconChart = "\u{1F4C8}";
+    const iconLight = "\u{1F4A1}";
+    const iconFlag = "\u{1F3C1}";
+    const iconClock = "\u{23F1}\u{FE0F}";
+    const iconRoad = "\u{1F6E3}\u{FE0F}";
+    const iconMoney = "\u{1F4B0}";
 
-    const kmLine = data.km ? `\n🛣️ KM rodado: ${data.km}` : "";
+    const skillsList = topSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n");
+
+    const kmLine = data.km ? `\n${iconRoad} *KM:* ${data.km}` : "";
     const valueLine =
       showValue && data.lessonValue
-        ? `\n💰 Valor da aula: R$ ${data.lessonValue.toFixed(2)}`
+        ? `\n${iconMoney} *Valor da aula:* R$ ${data.lessonValue.toFixed(2)}`
         : "";
 
-    const text =
-      `🚗 *Relatório de Evolução - SoloDrive*\n\n` +
+    const message =
+      `${iconCar} *Relatório de Evolução - SoloDrive*\n\n` +
       `Olá, *${data.studentName}*! Veja seu desempenho na aula de hoje:\n\n` +
-      `✅ *Habilidades Treinadas:*\n` +
+      `${iconCheck} *Habilidades Treinadas:*\n` +
       `${skillsList}\n\n` +
-      `📈 *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
-      `⏱️ Duração: ${data.duration} min` +
+      `${iconChart} *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
+      `${iconClock} *Duração:* ${data.duration} min` +
       `${kmLine}` +
       `${valueLine}\n\n` +
-      `💡 *Dica do Instrutor:*\n` +
-      `${feedback}\n\n` +
-      `🏁 Sua aprovação está próxima!\n\n` +
+      `${iconLight} *Dica:* ${feedback}\n\n` +
+      `${iconFlag} Sua aprovação está próxima!\n\n` +
       `_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`;
 
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    const encodedMessage = encodeURIComponent(message);
+    const phone = data.phone ?? "";
+    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, "")}?text=${encodedMessage}`;
+
+    const link = document.createElement("a");
+    link.href = whatsappUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.click();
   }, [data, feedback, showValue, topSkills]);
 
   /* ── Image export ── */
