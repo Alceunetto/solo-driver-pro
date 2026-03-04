@@ -77,6 +77,7 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
   );
   const [showValue, setShowValue] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [manualCopyText, setManualCopyText] = useState<string | null>(null);
   const { toast } = useToast();
 
   const topSkills = [...data.skills]
@@ -84,47 +85,72 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
     .slice(0, 3);
 
   /* ── WhatsApp text share ── */
-  const shareWhatsApp = useCallback(() => {
-    const iconCar = "\u{1F697}";
-    const iconCheck = "\u{2705}";
-    const iconChart = "\u{1F4C8}";
-    const iconLight = "\u{1F4A1}";
-    const iconFlag = "\u{1F3C1}";
-    const iconClock = "\u{23F1}\u{FE0F}";
-    const iconRoad = "\u{1F6E3}\u{FE0F}";
-    const iconMoney = "\u{1F4B0}";
-
+  const getShareMessage = useCallback(() => {
     const skillsList = topSkills.map((s) => `  • ${s.name}: ${s.value}%`).join("\n");
-
-    const kmLine = data.km ? `\n${iconRoad} *KM:* ${data.km}` : "";
+    const kmLine = data.km ? `\n🛣️ *KM:* ${data.km}` : "";
     const valueLine =
       showValue && data.lessonValue
-        ? `\n${iconMoney} *Valor da aula:* R$ ${data.lessonValue.toFixed(2)}`
+        ? `\n💰 *Valor da aula:* R$ ${data.lessonValue.toFixed(2)}`
         : "";
 
-    const message =
-      `${iconCar} *Relatório de Evolução - SoloDrive*\n\n` +
+    return (
+      `🚗 *Relatório de Evolução - SoloDrive*\n\n` +
       `Olá, *${data.studentName}*! Veja seu desempenho na aula de hoje:\n\n` +
-      `${iconCheck} *Habilidades Treinadas:*\n` +
+      `✅ *Habilidades Treinadas:*\n` +
       `${skillsList}\n\n` +
-      `${iconChart} *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
-      `${iconClock} *Duração:* ${data.duration} min` +
+      `📈 *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
+      `⏱️ *Duração:* ${data.duration} min` +
       `${kmLine}` +
       `${valueLine}\n\n` +
-      `${iconLight} *Dica:* ${feedback}\n\n` +
-      `${iconFlag} Sua aprovação está próxima!\n\n` +
-      `_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`;
+      `💡 *Dica:* ${feedback}\n\n` +
+      `🏁 Sua aprovação está próxima!\n\n` +
+      `_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`
+    );
+  }, [data, feedback, showValue, topSkills]);
 
-    const encodedMessage = encodeURIComponent(message);
-    const phone = data.phone ?? "";
-    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, "")}?text=${encodedMessage}`;
-
+  const openWhatsApp = useCallback((phone: string) => {
     const link = document.createElement("a");
-    link.href = whatsappUrl;
+    link.href = `https://wa.me/55${phone}`;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.click();
-  }, [data, feedback, showValue, topSkills]);
+  }, []);
+
+  const shareWhatsApp = useCallback(async () => {
+    const phone = (data.phone ?? "").replace(/\D/g, "");
+
+    if (!phone) {
+      toast({
+        title: "Número não informado",
+        description: "Adicione o telefone do aluno para abrir o WhatsApp.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const message = getShareMessage();
+
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(message);
+        setManualCopyText(null);
+        toast({
+          title: "Relatório copiado!",
+          description: "Cole na conversa que será aberta.",
+        });
+        window.setTimeout(() => openWhatsApp(phone), 1000);
+        return;
+      } catch {
+        // fallback manual below
+      }
+    }
+
+    setManualCopyText(message);
+    toast({
+      title: "Cópia manual necessária",
+      description: "Copie o texto abaixo e cole no WhatsApp.",
+    });
+  }, [data.phone, getShareMessage, openWhatsApp, toast]);
 
   /* ── Image export ── */
   const exportImage = useCallback(async () => {
@@ -382,6 +408,28 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
               WhatsApp
             </Button>
           </div>
+
+          {manualCopyText && (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3">
+              <Label className="text-xs text-muted-foreground block">
+                Copie manualmente e cole no WhatsApp
+              </Label>
+              <Textarea
+                value={manualCopyText}
+                readOnly
+                rows={6}
+                className="resize-none text-xs"
+              />
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => openWhatsApp((data.phone ?? "").replace(/\D/g, ""))}
+                >
+                  Abrir WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
