@@ -10,6 +10,7 @@ import Financeiro from "./pages/Financeiro";
 import Documentos from "./pages/Documentos";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/landing" element={<Landing />} />
           <Route path="/" element={<Index />} />
           <Route path="/prontuario" element={<Prontuario />} />
           <Route path="/simulado" element={<Simulado />} />
