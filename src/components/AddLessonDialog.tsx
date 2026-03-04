@@ -72,18 +72,30 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
             <div className="space-y-2">
               <Label>Início</Label>
               <Input
-                type="time"
+                type="text"
                 value={form.startTime}
-                onChange={(e) => update("startTime", e.target.value)}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/[^\d:]/g, "");
+                  if (v.length === 2 && !v.includes(":") && form.startTime.length < 3) v += ":";
+                  if (v.length <= 5) update("startTime", v);
+                }}
+                placeholder="09:00"
+                maxLength={5}
                 required
               />
             </div>
             <div className="space-y-2">
               <Label>Término</Label>
               <Input
-                type="time"
+                type="text"
                 value={form.endTime}
-                onChange={(e) => update("endTime", e.target.value)}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/[^\d:]/g, "");
+                  if (v.length === 2 && !v.includes(":") && form.endTime.length < 3) v += ":";
+                  if (v.length <= 5) update("endTime", v);
+                }}
+                placeholder="10:00"
+                maxLength={5}
                 required
               />
             </div>
