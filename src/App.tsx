@@ -8,6 +8,7 @@ import Prontuario from "./pages/Prontuario";
 import Simulado from "./pages/Simulado";
 import Financeiro from "./pages/Financeiro";
 import Documentos from "./pages/Documentos";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -20,6 +21,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
           <Route path="/prontuario" element={<Prontuario />} />
           <Route path="/simulado" element={<Simulado />} />
