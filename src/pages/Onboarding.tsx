@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   User, Car, DollarSign, ChevronRight, ChevronLeft,
   Camera, Check, Loader2, Fuel, Gauge, CreditCard, Package,
+  Gift, Sparkles,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import confetti from "canvas-confetti";
 
 /* ── masks ── */
@@ -35,16 +37,13 @@ function parseCurrency(formatted: string) {
 
 /* ── types ── */
 interface OnboardingData {
-  // step 1
   avatarUrl: string;
   name: string;
   bio: string;
-  // step 2
   carModel: string;
   plate: string;
   fuelType: string;
   consumption: string;
-  // step 3
   hourRate: string;
   package10: string;
   package20: string;
@@ -73,6 +72,9 @@ const STEPS = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan") || "free";
+
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL);
   const [done, setDone] = useState(false);
@@ -106,10 +108,17 @@ export default function Onboarding() {
   /* ── finish ── */
   const handleFinish = useCallback(async () => {
     setSaving(true);
+    // Simulate saving profile with subscription_status and student_limit
+    const profilePayload = {
+      ...data,
+      subscription_status: plan === "annual" ? "annual" : plan === "monthly" ? "monthly" : "free",
+      student_limit: plan === "free" ? 3 : null, // null = unlimited
+    };
+    console.log("Profile payload:", profilePayload);
     await new Promise((r) => setTimeout(r, 1200));
     setSaving(false);
     setDone(true);
-  }, []);
+  }, [data, plan]);
 
   useEffect(() => {
     if (done) {
@@ -119,7 +128,15 @@ export default function Onboarding() {
 
   /* ── monthly estimate ── */
   const hourValue = parseCurrency(data.hourRate);
-  const monthlyEstimate = hourValue * 5 * 22; // 5 aulas/dia, 22 dias
+  const monthlyEstimate = hourValue * 5 * 22;
+
+  /* ── plan info ── */
+  const planLabel =
+    plan === "annual" ? "Empreendedor (Anual)" :
+    plan === "monthly" ? "Profissional (Mensal)" :
+    "Iniciante (Grátis)";
+
+  const isFreePlan = plan === "free";
 
   /* ── render steps ── */
   const renderStep = () => {
@@ -135,6 +152,14 @@ export default function Onboarding() {
           <p className="text-sm text-muted-foreground max-w-xs">
             Você agora é um instrutor independente 2026. Sua central de comando está configurada.
           </p>
+          {isFreePlan && (
+            <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2">
+              <Gift className="w-4 h-4 text-primary" />
+              <span className="text-xs text-primary font-medium">
+                Plano Iniciante ativo · Até 3 alunos gratuitos
+              </span>
+            </div>
+          )}
           <Button className="mt-4 gap-2" onClick={() => navigate("/")}>
             Ir para meu Cockpit
             <ChevronRight className="w-4 h-4" />
@@ -285,6 +310,26 @@ export default function Onboarding() {
               </p>
             </div>
 
+            {/* Free plan incentive card */}
+            {isFreePlan && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">Plano Iniciante (Free)</p>
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0">Ativo</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Você tem direito a gerenciar até 3 alunos gratuitamente. Aproveite para testar todos os recursos!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="space-y-3">
               <div>
                 <Label className="flex items-center gap-1.5">
@@ -361,7 +406,6 @@ export default function Onboarding() {
       {/* top bar */}
       {!done && (
         <div className="px-4 pt-6 pb-2 space-y-3">
-          {/* step indicators */}
           <div className="flex items-center justify-center gap-6">
             {STEPS.map((s, i) => {
               const Icon = s.icon;
