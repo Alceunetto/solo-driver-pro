@@ -85,42 +85,30 @@ export function PerformanceReport({ data, open, onClose }: PerformanceReportProp
   /* ── WhatsApp text share ── */
   const shareWhatsApp = useCallback(() => {
     const skillsList = topSkills
-      .map((s) => "  \u2022 " + s.name + ": " + s.value + "%")
+      .map((s) => `  • ${s.name}: ${s.value}%`)
       .join("\n");
 
-    const lines: string[] = [
-      "\uD83D\uDE97 *Relat\u00F3rio de Evolu\u00E7\u00E3o - SoloDrive* \uD83D\uDE97",
-      "",
-      "Ol\u00E1, *" + data.studentName + "*! Veja seu desempenho na aula de hoje:",
-      "",
-      "\u2705 *Habilidades Treinadas:*",
-      skillsList,
-      "",
-      "\uD83D\uDCC8 N\u00EDvel de Evolu\u00E7\u00E3o: " + data.averageProgress + "% (+" + data.evolution + "%)",
-      "\u23F1\uFE0F Dura\u00E7\u00E3o: " + data.duration + " min",
-    ];
+    const kmLine = data.km ? `\n🛣️ KM rodado: ${data.km}` : "";
+    const valueLine =
+      showValue && data.lessonValue
+        ? `\n💰 Valor da aula: R$ ${data.lessonValue.toFixed(2)}`
+        : "";
 
-    if (data.km) {
-      lines.push("\uD83D\uDEE3\uFE0F KM rodado: " + data.km);
-    }
+    const text =
+      `🚗 *Relatório de Evolução - SoloDrive*\n\n` +
+      `Olá, *${data.studentName}*! Veja seu desempenho na aula de hoje:\n\n` +
+      `✅ *Habilidades Treinadas:*\n` +
+      `${skillsList}\n\n` +
+      `📈 *Evolução:* ${data.averageProgress}% (+${data.evolution}%)\n` +
+      `⏱️ Duração: ${data.duration} min` +
+      `${kmLine}` +
+      `${valueLine}\n\n` +
+      `💡 *Dica do Instrutor:*\n` +
+      `${feedback}\n\n` +
+      `🏁 Sua aprovação está próxima!\n\n` +
+      `_Treinado por ${data.instructorName} — O padrão ouro em instrução independente._`;
 
-    if (showValue && data.lessonValue) {
-      lines.push("\uD83D\uDCB0 Valor da aula: R$ " + data.lessonValue.toFixed(2));
-    }
-
-    lines.push(
-      "",
-      "\uD83D\uDCA1 *Dica do Instrutor:*",
-      feedback,
-      "",
-      "Continue focado! Sua aprova\u00E7\u00E3o est\u00E1 pr\u00F3xima. \uD83C\uDFC1",
-      "",
-      "_Treinado por " + data.instructorName + " \u2014 O padr\u00E3o ouro em instru\u00E7\u00E3o independente._"
-    );
-
-    const message = lines.join("\n");
-    const encoded = encodeURIComponent(message);
-    window.open("https://wa.me/?text=" + encoded, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   }, [data, feedback, showValue, topSkills]);
 
   /* ── Image export ── */
