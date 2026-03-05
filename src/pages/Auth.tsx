@@ -1,105 +1,77 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Route, MessageSquare, Mail, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Route, Mail, Loader2, ArrowLeft, ShieldCheck, LogIn, UserPlus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
-/* ── helpers ── */
-function formatPhone(raw: string) {
-  const digits = raw.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
-function isPhoneValid(v: string) {
-  return v.replace(/\D/g, "").length === 11;
-}
-
-function isEmailValid(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-}
-
-/* ── component ── */
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan") || "free";
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
-  const [tab, setTab] = useState<"whatsapp" | "email">("whatsapp");
-
-  // whatsapp state
-  const [phone, setPhone] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [loadingWa, setLoadingWa] = useState(false);
-
-  // email state
+  const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
-  const [magicSent, setMagicSent] = useState(false);
-  const [loadingEmail, setLoadingEmail] = useState(false);
-
-  // countdown
-  const [countdown, setCountdown] = useState(0);
-
-  // fade-in
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
+  // Redirect if already authenticated
   useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [countdown]);
-
-  /* ── actions ── */
-  const handleSendOtp = useCallback(async () => {
-    setLoadingWa(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoadingWa(false);
-    setOtpSent(true);
-    setCountdown(60);
-  }, []);
-
-  const handleVerifyOtp = useCallback(async () => {
-    setLoadingWa(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setLoadingWa(false);
-    // New user → onboarding with plan param
-    navigate(`/onboarding?plan=${plan}`);
-  }, [navigate, plan]);
-
-  const handleMagicLink = useCallback(async () => {
-    setLoadingEmail(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoadingEmail(false);
-    setMagicSent(true);
-  }, []);
-
-  const handleResend = useCallback(async () => {
-    if (countdown > 0) return;
-    if (tab === "whatsapp") {
-      setLoadingWa(true);
-      await new Promise((r) => setTimeout(r, 800));
-      setLoadingWa(false);
-    } else {
-      setLoadingEmail(true);
-      await new Promise((r) => setTimeout(r, 800));
-      setLoadingEmail(false);
+    if (!authLoading && user) {
+      navigate("/", { replace: true });
     }
-    setCountdown(60);
-  }, [countdown, tab]);
+  }, [user, authLoading, navigate]);
+
+  const handleLogin = useCallback(async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
+    }
+    // onAuthStateChange will redirect
+  }, [email, password, toast]);
+
+  const handleSignup = useCallback(async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" });
+    } else {
+      toast({
+        title: "Verifique seu e-mail",
+        description: "Enviamos um link de confirmação para " + email.trim(),
+      });
+    }
+  }, [email, password, fullName, toast]);
+
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isPasswordValid = password.length >= 6;
 
   const planLabel =
     plan === "annual" ? "Empreendedor (Anual)" :
     plan === "monthly" ? "Profissional (Mensal)" :
     "Iniciante (Grátis)";
 
-  /* ── render ── */
   return (
     <div
       className={`min-h-screen flex flex-col items-center justify-center px-4 bg-background transition-opacity duration-500 ${
@@ -128,168 +100,98 @@ export default function Auth() {
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card shadow-lg p-6 space-y-5">
         <Tabs
           value={tab}
-          onValueChange={(v) => {
-            setTab(v as "whatsapp" | "email");
-            setOtpSent(false);
-            setMagicSent(false);
-            setOtp("");
-            setCountdown(0);
-          }}
+          onValueChange={(v) => setTab(v as "login" | "signup")}
         >
           <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="whatsapp" className="gap-1.5">
-              <MessageSquare className="w-4 h-4" />
-              WhatsApp
+            <TabsTrigger value="login" className="gap-1.5">
+              <LogIn className="w-4 h-4" />
+              Entrar
             </TabsTrigger>
-            <TabsTrigger value="email" className="gap-1.5">
-              <Mail className="w-4 h-4" />
-              E-mail
+            <TabsTrigger value="signup" className="gap-1.5">
+              <UserPlus className="w-4 h-4" />
+              Criar conta
             </TabsTrigger>
           </TabsList>
 
-          {/* ── WhatsApp tab ── */}
-          <TabsContent value="whatsapp" className="space-y-4 pt-2">
-            {!otpSent ? (
-              <>
-                <label className="text-sm font-medium text-foreground">
-                  Número de celular
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground shrink-0 select-none">
-                    🇧🇷 +55
-                  </span>
-                  <Input
-                    placeholder="(00) 00000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
-                    className="flex-1"
-                    inputMode="tel"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Enviaremos um código de acesso rápido para o seu WhatsApp.
-                </p>
-                <Button
-                  className="w-full"
-                  disabled={!isPhoneValid(phone) || loadingWa}
-                  onClick={handleSendOtp}
-                >
-                  {loadingWa ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <MessageSquare className="w-4 h-4" />
-                  )}
-                  Receber Código via WhatsApp
-                </Button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => { setOtpSent(false); setOtp(""); setCountdown(0); }}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ArrowLeft className="w-3 h-3" /> Voltar
-                </button>
-                <p className="text-sm text-foreground">
-                  Insira o código de 6 dígitos enviado para{" "}
-                  <span className="font-semibold">+55 {phone}</span>
-                </p>
-                <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-                <Button
-                  className="w-full"
-                  disabled={otp.length !== 6 || loadingWa}
-                  onClick={handleVerifyOtp}
-                >
-                  {loadingWa ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ShieldCheck className="w-4 h-4" />
-                  )}
-                  Verificar e Entrar
-                </Button>
-                <button
-                  onClick={handleResend}
-                  disabled={countdown > 0}
-                  className="w-full text-center text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
-                >
-                  {countdown > 0
-                    ? `Reenviar código em ${countdown}s`
-                    : "Reenviar código"}
-                </button>
-              </>
-            )}
+          {/* ── Login tab ── */}
+          <TabsContent value="login" className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">E-mail</label>
+              <Input
+                type="email"
+                placeholder="instrutor@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                inputMode="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Senha</label>
+              <Input
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={!isEmailValid || !isPasswordValid || loading}
+              onClick={handleLogin}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <LogIn className="w-4 h-4" />
+              )}
+              Entrar
+            </Button>
           </TabsContent>
 
-          {/* ── Email tab ── */}
-          <TabsContent value="email" className="space-y-4 pt-2">
-            {!magicSent ? (
-              <>
-                <label className="text-sm font-medium text-foreground">
-                  E-mail
-                </label>
-                <Input
-                  type="email"
-                  placeholder="instrutor@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  inputMode="email"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Você receberá um link de acesso na sua caixa de entrada.
-                </p>
-                <Button
-                  className="w-full"
-                  disabled={!isEmailValid(email) || loadingEmail}
-                  onClick={handleMagicLink}
-                >
-                  {loadingEmail ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Mail className="w-4 h-4" />
-                  )}
-                  Enviar Link Mágico
-                </Button>
-              </>
-            ) : (
-              <div className="text-center space-y-3 py-4">
-                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <p className="text-sm font-medium text-foreground">
-                  Link enviado!
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Verifique sua caixa de entrada em{" "}
-                  <span className="font-semibold">{email}</span>
-                </p>
-                <button
-                  onClick={handleResend}
-                  disabled={countdown > 0}
-                  className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
-                >
-                  {countdown > 0
-                    ? `Reenviar em ${countdown}s`
-                    : "Reenviar link"}
-                </button>
-                <button
-                  onClick={() => { setMagicSent(false); setCountdown(0); }}
-                  className="block mx-auto text-xs text-primary hover:underline"
-                >
-                  Usar outro e-mail
-                </button>
-              </div>
-            )}
+          {/* ── Signup tab ── */}
+          <TabsContent value="signup" className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Nome completo</label>
+              <Input
+                placeholder="Seu nome"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">E-mail</label>
+              <Input
+                type="email"
+                placeholder="instrutor@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                inputMode="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Senha</label>
+              <Input
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={!isEmailValid || !isPasswordValid || !fullName.trim() || loading}
+              onClick={handleSignup}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4" />
+              )}
+              Criar conta
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Você receberá um e-mail de confirmação antes de acessar.
+            </p>
           </TabsContent>
         </Tabs>
       </div>
@@ -299,12 +201,6 @@ export default function Auth() {
         <p className="text-[11px] text-muted-foreground leading-relaxed">
           Ao entrar, você concorda com os novos termos da{" "}
           <span className="underline cursor-pointer">Lei de Autoescolas 2026</span>.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Ainda não tem conta?{" "}
-          <span className="text-primary font-medium cursor-pointer hover:underline">
-            Comece seu teste grátis agora.
-          </span>
         </p>
       </div>
     </div>

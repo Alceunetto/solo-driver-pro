@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Prontuario from "./pages/Prontuario";
 import Simulado from "./pages/Simulado";
@@ -26,13 +27,13 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/landing" element={<Landing />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/prontuario" element={<Prontuario />} />
-            <Route path="/simulado" element={<Simulado />} />
-            <Route path="/financeiro" element={<Financeiro />} />
-            <Route path="/documentos" element={<Documentos />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/prontuario" element={<ProtectedRoute><Prontuario /></ProtectedRoute>} />
+            <Route path="/simulado" element={<ProtectedRoute><Simulado /></ProtectedRoute>} />
+            <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
+            <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
