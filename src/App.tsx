@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Prontuario from "./pages/Prontuario";
 import Simulado from "./pages/Simulado";
@@ -17,26 +18,28 @@ import { BottomNav } from "./components/BottomNav";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/prontuario" element={<Prontuario />} />
-          <Route path="/simulado" element={<Simulado />} />
-          <Route path="/financeiro" element={<Financeiro />} />
-          <Route path="/documentos" element={<Documentos />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <BottomNav />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/prontuario" element={<Prontuario />} />
+            <Route path="/simulado" element={<Simulado />} />
+            <Route path="/financeiro" element={<Financeiro />} />
+            <Route path="/documentos" element={<Documentos />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <BottomNav />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
