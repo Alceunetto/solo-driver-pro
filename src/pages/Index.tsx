@@ -14,11 +14,34 @@ import { WeeklyChart } from "@/components/shared/WeeklyChart";
 import { DashboardSkeleton } from "@/components/shared/DashboardSkeleton";
 import { TimelineLogistica } from "@/components/TimelineLogistica";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
+import { ActiveLesson } from "@/components/shared/ActiveLesson";
+import { PerformanceReport } from "@/components/shared/PerformanceReport";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
+
+// ── Checklist-to-skills mapping ──
+const CHECKLIST_TO_SKILL: Record<string, string> = {
+  cinto: "Preparação",
+  partida: "Preparação",
+  seta: "Sinalização",
+  retrovisores: "Observação",
+  embreagem: "Controle do Veículo",
+  faixa: "Direção Defensiva",
+  velocidade: "Controle do Veículo",
+  parada: "Controle do Veículo",
+  conversao: "Manobras",
+  retorno: "Manobras",
+  baliza: "Baliza",
+  pedestre: "Direção Defensiva",
+  sinalizacao: "Sinalização",
+  rotatoria: "Manobras",
+  ultrapassagem: "Direção Defensiva",
+};
+
+const SKILL_NAMES = [...new Set(Object.values(CHECKLIST_TO_SKILL))];
 
 function KpiSkeleton() {
   return (
@@ -35,6 +58,17 @@ function KpiSkeleton() {
   );
 }
 
+interface ActiveLessonData {
+  id: string;
+  studentName: string;
+  startTime: string;
+  endTime: string;
+  meetingLocation: string;
+  type: string;
+  value: number;
+  index: number;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -42,6 +76,8 @@ const Index = () => {
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(null);
+  const [reportData, setReportData] = useState<any>(null);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
@@ -56,12 +92,10 @@ const Index = () => {
 
   const { summary, isLoading: isFinanceLoading } = useFinance(now.getMonth() + 1, now.getFullYear());
 
-  // Use real data if available, fallback to mock
   const revenue = summary?.total_revenue ?? month.revenue;
   const expenses = summary?.total_expenses ?? totalCosts;
   const netProfit = summary?.net_profit ?? mockNetProfit;
   const hourlyRate = summary?.hourly_rate ?? mockHourlyRate;
-  const profitMargin = summary?.profit_margin ?? 0;
 
   const handleAddStudent = () => {
     if (!canAdd) {
@@ -69,6 +103,79 @@ const Index = () => {
     } else {
       toast({ title: "Novo aluno", description: "Formulário em breve!" });
     }
+  };
+
+  const handleStartLesson = (index: number) => {
+    if (activeLesson) {
+      toast({
+        title: "Aula em andamento",
+        description: "Finalize a aula atual antes de iniciar outra.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const lesson = nextLessons[index];
+    setActiveLesson({
+      id: `lesson-${index}`,
+      studentName: lesson.student,
+      startTime: lesson.time,
+      endTime: (() => {
+        const [h, m] = lesson.time.split(":").map(Number);
+        const endH = h + 1;
+        return `${endH.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+      })(),
+      meetingLocation: lesson.location,
+      type: "pratica",
+      value: 120,
+      index,
+    });
+
+    toast({ title: "Aula iniciada!", description: `Aula com ${lesson.student}` });
+  };
+
+  const handleFinishLesson = (checkedItems: string[], elapsedSeconds: number) => {
+    if (!activeLesson) return;
+
+    // Build skills from checklist
+    const skillScores: Record<string, { checked: number; total: number }> = {};
+    SKILL_NAMES.forEach((name) => {
+      skillScores[name] = { checked: 0, total: 0 };
+    });
+
+    Object.entries(CHECKLIST_TO_SKILL).forEach(([checkId, skillName]) => {
+      skillScores[skillName].total++;
+      if (checkedItems.includes(checkId)) {
+        skillScores[skillName].checked++;
+      }
+    });
+
+    const skills = SKILL_NAMES.map((name) => ({
+      name,
+      value: skillScores[name].total > 0
+        ? Math.round((skillScores[name].checked / skillScores[name].total) * 100)
+        : 0,
+    }));
+
+    const averageProgress = Math.round(
+      skills.reduce((sum, s) => sum + s.value, 0) / skills.length
+    );
+
+    const durationMinutes = Math.ceil(elapsedSeconds / 60);
+
+    setReportData({
+      studentName: activeLesson.studentName,
+      instructorName: "Instrutor",
+      date: new Date().toLocaleDateString("pt-BR"),
+      duration: durationMinutes,
+      skills,
+      averageProgress,
+      evolution: Math.round(averageProgress * 0.1),
+      lessonValue: activeLesson.value,
+    });
+
+    setActiveLesson(null);
+    toast({ title: "Aula finalizada!", description: "Relatório de desempenho gerado." });
   };
 
   useEffect(() => {
@@ -79,6 +186,17 @@ const Index = () => {
 
   const masked = (v: string) => (showFinancials ? v : "••••");
   const profitColor = netProfit >= 0 ? "text-success" : "text-destructive";
+
+  // Active lesson fullscreen
+  if (activeLesson) {
+    return (
+      <ActiveLesson
+        lesson={activeLesson}
+        onFinish={handleFinishLesson}
+        onCancel={() => setActiveLesson(null)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background transition-colors pb-24">
@@ -232,7 +350,11 @@ const Index = () => {
               <span className="text-sm font-semibold text-foreground">Próximas Aulas</span>
             </div>
             {nextLessons.map((lesson, i) => (
-              <NextLessonCard key={i} {...lesson} />
+              <NextLessonCard
+                key={i}
+                {...lesson}
+                onStart={() => handleStartLesson(i)}
+              />
             ))}
           </CardContent>
         </Card>
@@ -252,6 +374,21 @@ const Index = () => {
       </main>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+
+      {/* Performance Report after finishing a lesson */}
+      <PerformanceReport
+        data={reportData ?? {
+          studentName: "",
+          instructorName: "",
+          date: "",
+          duration: 0,
+          skills: [],
+          averageProgress: 0,
+          evolution: 0,
+        }}
+        open={!!reportData}
+        onClose={() => setReportData(null)}
+      />
     </div>
   );
 };
