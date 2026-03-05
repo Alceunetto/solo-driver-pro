@@ -1,10 +1,6 @@
-// Supabase client placeholder
-// Will be replaced with real client when Lovable Cloud is enabled.
-// For now, services use mock data with this interface ready.
+// Re-export the auto-generated Supabase client
+export { supabase } from "@/integrations/supabase/client";
 
-export const supabase = null as any;
-
-// Helper to check if Supabase is connected
 export const isSupabaseConnected = (): boolean => {
-  return supabase !== null && typeof supabase?.from === "function";
+  return true; // Cloud is now connected
 };

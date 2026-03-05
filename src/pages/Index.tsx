@@ -4,7 +4,7 @@ import {
   Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { NextLessonCard } from "@/components/shared/NextLessonCard";
 import { StudentRadar } from "@/components/shared/StudentRadar";
@@ -14,8 +14,24 @@ import { DashboardSkeleton } from "@/components/shared/DashboardSkeleton";
 import { TimelineLogistica } from "@/components/TimelineLogistica";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useFinance } from "@/hooks/useFinance";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
+
+function KpiSkeleton() {
+  return (
+    <Card className="border-border/50">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-7 h-7 rounded-lg" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-7 w-24" />
+        <Skeleton className="h-3 w-32" />
+      </CardContent>
+    </Card>
+  );
+}
 
 const Index = () => {
   const [isDark, setIsDark] = useState(true);
@@ -26,12 +42,22 @@ const Index = () => {
 
   const userPlan: SubscriptionPlan = "free";
 
+  const now = new Date();
   const {
     students, month, weeklyData, nextLessons,
-    totalCosts, netProfit, hourlyRate, revenueGrowth,
-    independentGain, costPerLesson, kmToOil,
-    studentLimit, canAdd, isLoading,
+    totalCosts, netProfit: mockNetProfit, hourlyRate: mockHourlyRate,
+    revenueGrowth, independentGain, costPerLesson, kmToOil,
+    studentLimit, canAdd, isLoading: isDashboardLoading,
   } = useDashboardData(userPlan);
+
+  const { summary, isLoading: isFinanceLoading } = useFinance(now.getMonth() + 1, now.getFullYear());
+
+  // Use real data if available, fallback to mock
+  const revenue = summary?.total_revenue ?? month.revenue;
+  const expenses = summary?.total_expenses ?? totalCosts;
+  const netProfit = summary?.net_profit ?? mockNetProfit;
+  const hourlyRate = summary?.hourly_rate ?? mockHourlyRate;
+  const profitMargin = summary?.profit_margin ?? 0;
 
   const handleAddStudent = () => {
     if (!canAdd) {
@@ -45,9 +71,10 @@ const Index = () => {
     document.documentElement.classList.toggle("dark", isDark);
   }, [isDark]);
 
-  if (isLoading) return <DashboardSkeleton />;
+  if (isDashboardLoading) return <DashboardSkeleton />;
 
   const masked = (v: string) => (showFinancials ? v : "••••");
+  const profitColor = netProfit >= 0 ? "text-success" : "text-destructive";
 
   return (
     <div className="min-h-screen bg-background transition-colors pb-24">
@@ -90,81 +117,96 @@ const Index = () => {
       <main className="container py-5 space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatsCard
-            icon={DollarSign}
-            iconBgClass="bg-primary/10"
-            iconColorClass="text-primary"
-            label="Receita Mês"
-            value={masked(`R$ ${month.revenue.toLocaleString("pt-BR")}`)}
-            footer={
-              <div className="flex items-center gap-1 text-xs">
-                {revenueGrowth >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3 text-success" />
-                ) : (
-                  <ArrowDownRight className="w-3 h-3 text-destructive" />
-                )}
-                <span className={revenueGrowth >= 0 ? "text-success" : "text-destructive"}>
-                  {showFinancials ? `${revenueGrowth.toFixed(0)}%` : "••"} vs mês anterior
-                </span>
-              </div>
-            }
-          />
+          {isFinanceLoading ? (
+            <>
+              <KpiSkeleton />
+              <KpiSkeleton />
+              <KpiSkeleton />
+              <KpiSkeleton />
+            </>
+          ) : (
+            <>
+              <StatsCard
+                icon={DollarSign}
+                iconBgClass="bg-primary/10"
+                iconColorClass="text-primary"
+                label="Receita Mês"
+                value={masked(`R$ ${revenue.toLocaleString("pt-BR")}`)}
+                footer={
+                  <div className="flex items-center gap-1 text-xs">
+                    {revenueGrowth >= 0 ? (
+                      <ArrowUpRight className="w-3 h-3 text-success" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3 text-destructive" />
+                    )}
+                    <span className={revenueGrowth >= 0 ? "text-success" : "text-destructive"}>
+                      {showFinancials ? `${revenueGrowth.toFixed(0)}%` : "••"} vs mês anterior
+                    </span>
+                  </div>
+                }
+              />
 
-          <Card
-            className="border-success/30 cursor-pointer hover:border-success/60 transition-colors"
-            onClick={() => setBreakdownOpen(!breakdownOpen)}
-          >
-            <CardContent className="p-4 space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-success/10">
-                  <TrendingUp className="w-4 h-4 text-success" />
-                </div>
-                <span className="text-[11px] text-muted-foreground font-medium">Lucro Líquido</span>
-              </div>
-              <p className="text-2xl font-bold text-success">
-                {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
-              </p>
-              <div className="flex items-center gap-1">
-                <Award className="w-3 h-3 text-primary" />
-                <span className="text-[10px] text-primary font-medium">
-                  {showFinancials
-                    ? `+R$ ${independentGain.toLocaleString("pt-BR")} vs autoescola`
-                    : "•• vs autoescola"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+              <Card
+                className={`border-${netProfit >= 0 ? "success" : "destructive"}/30 cursor-pointer hover:border-${netProfit >= 0 ? "success" : "destructive"}/60 transition-colors`}
+                onClick={() => setBreakdownOpen(!breakdownOpen)}
+              >
+                <CardContent className="p-4 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1.5 rounded-lg ${netProfit >= 0 ? "bg-success/10" : "bg-destructive/10"}`}>
+                      <TrendingUp className={`w-4 h-4 ${profitColor}`} />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground font-medium">Lucro Líquido</span>
+                  </div>
+                  <p className={`text-2xl font-bold ${profitColor}`}>
+                    {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Award className="w-3 h-3 text-primary" />
+                    <span className="text-[10px] text-primary font-medium">
+                      {showFinancials
+                        ? `+R$ ${independentGain.toLocaleString("pt-BR")} vs autoescola`
+                        : "•• vs autoescola"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <StatsCard
-            icon={Clock}
-            iconBgClass="bg-accent/10"
-            iconColorClass="text-accent"
-            label="Valor/Hora Real"
-            value={masked(`R$ ${hourlyRate.toFixed(0)}`)}
-            footer={<p className="text-[10px] text-muted-foreground">{month.hours}h trabalhadas</p>}
-          />
+              <StatsCard
+                icon={Clock}
+                iconBgClass="bg-accent/10"
+                iconColorClass="text-accent"
+                label="Valor/Hora Real"
+                value={masked(`R$ ${hourlyRate.toFixed(0)}`)}
+                footer={
+                  <p className="text-[10px] text-muted-foreground">
+                    {summary?.total_hours?.toFixed(0) ?? month.hours}h trabalhadas
+                  </p>
+                }
+              />
 
-          <StatsCard
-            icon={Fuel}
-            iconBgClass={kmToOil < 2000 ? "bg-warning/10" : "bg-muted"}
-            iconColorClass={kmToOil < 2000 ? "text-warning" : "text-muted-foreground"}
-            label="Custo/Aula"
-            value={masked(`R$ ${costPerLesson.toFixed(1)}`)}
-            className={kmToOil < 2000 ? "border-warning/50" : ""}
-            footer={
-              kmToOil < 2000 ? (
-                <div className="flex items-center gap-1 text-[10px] text-warning font-medium">
-                  <AlertTriangle className="w-3 h-3" />
-                  Troca de óleo em {kmToOil.toLocaleString("pt-BR")} km
-                </div>
-              ) : undefined
-            }
-          />
+              <StatsCard
+                icon={Fuel}
+                iconBgClass={kmToOil < 2000 ? "bg-warning/10" : "bg-muted"}
+                iconColorClass={kmToOil < 2000 ? "text-warning" : "text-muted-foreground"}
+                label="Custo/Aula"
+                value={masked(`R$ ${costPerLesson.toFixed(1)}`)}
+                className={kmToOil < 2000 ? "border-warning/50" : ""}
+                footer={
+                  kmToOil < 2000 ? (
+                    <div className="flex items-center gap-1 text-[10px] text-warning font-medium">
+                      <AlertTriangle className="w-3 h-3" />
+                      Troca de óleo em {kmToOil.toLocaleString("pt-BR")} km
+                    </div>
+                  ) : undefined
+                }
+              />
+            </>
+          )}
         </div>
 
         {/* Breakdown */}
         {breakdownOpen && showFinancials && (
-          <CostBreakdown month={month} totalCosts={totalCosts} />
+          <CostBreakdown month={month} totalCosts={expenses} />
         )}
 
         {/* Weekly Chart */}

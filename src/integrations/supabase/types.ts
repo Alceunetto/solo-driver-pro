@@ -14,7 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          instructor_id: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          instructor_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          instructor_id?: string
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          created_at: string
+          date: string
+          end_location: string
+          end_time: string
+          id: string
+          instructor_id: string
+          meeting_address: string
+          meeting_location: string
+          payment_status: string
+          price: number
+          start_time: string
+          status: string
+          student_id: string | null
+          student_name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          end_location?: string
+          end_time: string
+          id?: string
+          instructor_id: string
+          meeting_address?: string
+          meeting_location?: string
+          payment_status?: string
+          price?: number
+          start_time: string
+          status?: string
+          student_id?: string | null
+          student_name: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_location?: string
+          end_time?: string
+          id?: string
+          instructor_id?: string
+          meeting_address?: string
+          meeting_location?: string
+          payment_status?: string
+          price?: number
+          start_time?: string
+          status?: string
+          student_id?: string | null
+          student_name?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          id: string
+          plan: string
+          role: string
+          student_limit: number
+          subscription_status: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id: string
+          plan?: string
+          role?: string
+          student_limit?: number
+          subscription_status?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          plan?: string
+          role?: string
+          student_limit?: number
+          subscription_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          completed_lessons: number
+          cpf: string | null
+          created_at: string
+          email: string | null
+          id: string
+          instructor_id: string
+          name: string
+          paid: boolean
+          progress: number
+          status: string
+          total_lessons: number
+          whatsapp: string
+        }
+        Insert: {
+          completed_lessons?: number
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          instructor_id: string
+          name: string
+          paid?: boolean
+          progress?: number
+          status?: string
+          total_lessons?: number
+          whatsapp?: string
+        }
+        Update: {
+          completed_lessons?: number
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          instructor_id?: string
+          name?: string
+          paid?: boolean
+          progress?: number
+          status?: string
+          total_lessons?: number
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          avg_consumption: number
+          brand: string
+          created_at: string
+          current_km: number
+          fuel_type: string
+          id: string
+          instructor_id: string
+          model: string
+          oil_change_km: number
+          plate: string
+          year: number
+        }
+        Insert: {
+          avg_consumption?: number
+          brand?: string
+          created_at?: string
+          current_km?: number
+          fuel_type?: string
+          id?: string
+          instructor_id: string
+          model?: string
+          oil_change_km?: number
+          plate?: string
+          year?: number
+        }
+        Update: {
+          avg_consumption?: number
+          brand?: string
+          created_at?: string
+          current_km?: number
+          fuel_type?: string
+          id?: string
+          instructor_id?: string
+          model?: string
+          oil_change_km?: number
+          plate?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
