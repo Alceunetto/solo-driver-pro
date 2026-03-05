@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
-  Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award,
+  Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award, LogOut,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ import { TimelineLogistica } from "@/components/TimelineLogistica";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance } from "@/hooks/useFinance";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 
@@ -34,6 +36,8 @@ function KpiSkeleton() {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [isDark, setIsDark] = useState(true);
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
@@ -109,6 +113,14 @@ const Index = () => {
               aria-label="Alternar tema"
             >
               {isDark ? <Sun className="w-5 h-5 text-accent" /> : <Moon className="w-5 h-5 text-foreground" />}
+            </button>
+            <button
+              onClick={async () => { await signOut(); navigate("/auth", { replace: true }); }}
+              className="p-2 rounded-lg bg-secondary hover:bg-destructive/10 transition-colors"
+              aria-label="Sair"
+              title="Sair da conta"
+            >
+              <LogOut className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>
