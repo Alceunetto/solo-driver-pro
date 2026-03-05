@@ -23,9 +23,9 @@ const WEEKLY_DATA: WeeklyDataPoint[] = [
 ];
 
 const MOCK_STUDENTS: Student[] = [
-  { id: "1", instructorId: "i1", name: "Carlos Silva", phone: "", progress: 75, totalLessons: 12, completedLessons: 8, paid: true, status: "ativo", createdAt: "" },
-  { id: "2", instructorId: "i1", name: "Ana Oliveira", phone: "", progress: 45, totalLessons: 10, completedLessons: 4, paid: false, status: "ativo", createdAt: "" },
-  { id: "3", instructorId: "i1", name: "Pedro Santos", phone: "", progress: 90, totalLessons: 20, completedLessons: 18, paid: true, status: "ativo", createdAt: "" },
+  { id: "1", instructor_id: "i1", name: "Carlos Silva", whatsapp: "11999990001", progress: 75, total_lessons: 12, completed_lessons: 8, paid: true, status: "active", created_at: "" },
+  { id: "2", instructor_id: "i1", name: "Ana Oliveira", whatsapp: "11999990002", progress: 45, total_lessons: 10, completed_lessons: 4, paid: false, status: "active", created_at: "" },
+  { id: "3", instructor_id: "i1", name: "Pedro Santos", whatsapp: "11999990003", progress: 90, total_lessons: 20, completed_lessons: 18, paid: true, status: "active", created_at: "" },
 ];
 
 const MOCK_MONTH: MonthlyFinancials = {

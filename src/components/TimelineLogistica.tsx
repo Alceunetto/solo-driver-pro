@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Lesson } from "@/types/solodrive";
-import { LessonCard } from "./LessonCard";
-import { DisplacementGapCard } from "./DisplacementGapCard";
-import { AddLessonDialog } from "./AddLessonDialog";
+import { LessonCard } from "./shared/LessonCard";
+import { DisplacementGapCard } from "./shared/DisplacementGapCard";
+import { AddLessonDialog } from "./shared/AddLessonDialog";
 import { calculateGaps, openInWaze, openInGoogleMaps } from "@/lib/schedule";
 import { Plus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";

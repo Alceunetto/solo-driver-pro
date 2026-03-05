@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, Share2, TrendingUp, Star, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PerformanceReport } from "@/components/PerformanceReport";
+import { PerformanceReport } from "@/components/shared/PerformanceReport";
 
 interface Skill {
   id: string;

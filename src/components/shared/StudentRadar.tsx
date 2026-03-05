@@ -59,7 +59,7 @@ export function StudentRadar({
               <span className="text-xs text-muted-foreground">{s.progress}%</span>
             </div>
             <Progress value={s.progress} className="h-1.5" />
-            <p className="text-[10px] text-muted-foreground">{s.completedLessons} aulas realizadas</p>
+            <p className="text-[10px] text-muted-foreground">{s.completed_lessons} aulas realizadas</p>
           </div>
         ))}
 
