@@ -115,18 +115,47 @@ export default function Onboarding() {
 
   /* ── finish ── */
   const handleFinish = useCallback(async () => {
+    if (!user) return;
     setSaving(true);
-    // Simulate saving profile with subscription_status and student_limit
-    const profilePayload = {
-      ...data,
-      subscription_status: plan === "annual" ? "annual" : plan === "monthly" ? "monthly" : "free",
-      student_limit: plan === "free" ? 3 : null, // null = unlimited
-    };
-    console.log("Profile payload:", profilePayload);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSaving(false);
-    setDone(true);
-  }, [data, plan]);
+    try {
+      // 1. Update profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: data.name.trim(),
+          plan: plan === "annual" ? "annual" : plan === "monthly" ? "monthly" : "free",
+          student_limit: plan === "free" ? 3 : 999,
+          onboarding_completed: true,
+        } as any)
+        .eq("id", user.id);
+      if (profileError) throw profileError;
+
+      // 2. Create vehicle record
+      if (data.carModel.trim()) {
+        const { error: vehicleError } = await supabase.from("vehicles").insert({
+          instructor_id: user.id,
+          model: data.carModel.trim(),
+          plate: data.plate.replace("-", ""),
+          fuel_type: data.fuelType || "flex",
+          avg_consumption: parseFloat(data.consumption) || 10,
+        });
+        if (vehicleError) console.warn("Vehicle save failed:", vehicleError);
+      }
+
+      // 3. Invalidate profile cache so ProtectedRoute picks up onboarding_completed=true
+      await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+
+      setSaving(false);
+      setDone(true);
+    } catch (err: any) {
+      setSaving(false);
+      toast({
+        title: "Erro ao salvar",
+        description: err.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  }, [data, plan, user, queryClient, toast]);
 
   useEffect(() => {
     if (done) {
