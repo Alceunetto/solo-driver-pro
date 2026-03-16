@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
   Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award, LogOut,
@@ -21,23 +22,24 @@ import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
+import { saveEvaluations } from "@/services/evaluationService";
 
-// ── Checklist-to-skills mapping ──
+// ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
-  cinto: "Preparação",
-  partida: "Preparação",
-  seta: "Sinalização",
-  retrovisores: "Observação",
-  embreagem: "Controle do Veículo",
-  faixa: "Direção Defensiva",
-  velocidade: "Controle do Veículo",
-  parada: "Controle do Veículo",
-  conversao: "Manobras",
-  retorno: "Manobras",
-  baliza: "Baliza",
+  cinto: "Controle de Embreagem",       // preparation → closest match
+  partida: "Controle de Embreagem",
+  seta: "Sinalização e Faixa",
+  retrovisores: "Uso de Espelhos",
+  embreagem: "Controle de Embreagem",
+  faixa: "Sinalização e Faixa",
+  velocidade: "Direção Defensiva",
+  parada: "Controle de Embreagem",
+  conversao: "Conversões e Manobras",
+  retorno: "Conversões e Manobras",
+  baliza: "Baliza / Estacionamento",
   pedestre: "Direção Defensiva",
-  sinalizacao: "Sinalização",
-  rotatoria: "Manobras",
+  sinalizacao: "Sinalização e Faixa",
+  rotatoria: "Conversões e Manobras",
   ultrapassagem: "Direção Defensiva",
 };
 
@@ -60,6 +62,7 @@ function KpiSkeleton() {
 
 interface ActiveLessonData {
   id: string;
+  studentId?: string;
   studentName: string;
   startTime: string;
   endTime: string;
@@ -71,7 +74,8 @@ interface ActiveLessonData {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const { user, signOut } = useAuth();
   const [isDark, setIsDark] = useState(true);
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
@@ -116,8 +120,13 @@ const Index = () => {
     }
 
     const lesson = nextLessons[index];
+    // Find matching student from real data
+    const matchedStudent = students.find(
+      (s) => s.name.toLowerCase() === lesson.student.toLowerCase()
+    );
     setActiveLesson({
       id: `lesson-${index}`,
+      studentId: matchedStudent?.id,
       studentName: lesson.student,
       startTime: lesson.time,
       endTime: (() => {
@@ -134,7 +143,7 @@ const Index = () => {
     toast({ title: "Aula iniciada!", description: `Aula com ${lesson.student}` });
   };
 
-  const handleFinishLesson = (checkedItems: string[], elapsedSeconds: number) => {
+  const handleFinishLesson = async (checkedItems: string[], elapsedSeconds: number) => {
     if (!activeLesson) return;
 
     // Build skills from checklist
@@ -162,6 +171,25 @@ const Index = () => {
     );
 
     const durationMinutes = Math.ceil(elapsedSeconds / 60);
+
+    // Save evaluations to database
+    if (activeLesson.studentId && user?.id) {
+      try {
+        const scores: Record<string, number> = {};
+        skills.forEach((s) => { scores[s.name] = s.value; });
+        await saveEvaluations(activeLesson.id, activeLesson.studentId, user.id, scores);
+        // Invalidate skill queries so prontuário updates
+        queryClient.invalidateQueries({ queryKey: ["student-skills", activeLesson.studentId] });
+        queryClient.invalidateQueries({ queryKey: ["student-lessons", activeLesson.studentId] });
+      } catch (err) {
+        console.error("Erro ao salvar avaliações:", err);
+        toast({
+          title: "Aviso",
+          description: "Avaliações não foram salvas no banco, mas o relatório foi gerado.",
+          variant: "destructive",
+        });
+      }
+    }
 
     setReportData({
       studentName: activeLesson.studentName,
