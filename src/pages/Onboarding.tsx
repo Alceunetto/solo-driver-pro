@@ -118,13 +118,11 @@ export default function Onboarding() {
     if (!user) return;
     setSaving(true);
     try {
-      // 1. Update profile
+      // 1. Update profile (only safe fields — plan/role are managed server-side)
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
           full_name: data.name.trim(),
-          plan: plan === "annual" ? "annual" : plan === "monthly" ? "monthly" : "free",
-          student_limit: plan === "free" ? 3 : 999,
           onboarding_completed: true,
         } as any)
         .eq("id", user.id);
