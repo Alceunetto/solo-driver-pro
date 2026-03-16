@@ -120,8 +120,13 @@ const Index = () => {
     }
 
     const lesson = nextLessons[index];
+    // Find matching student from real data
+    const matchedStudent = students.find(
+      (s) => s.name.toLowerCase() === lesson.student.toLowerCase()
+    );
     setActiveLesson({
       id: `lesson-${index}`,
+      studentId: matchedStudent?.id,
       studentName: lesson.student,
       startTime: lesson.time,
       endTime: (() => {
