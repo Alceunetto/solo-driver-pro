@@ -23,22 +23,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 
-// ── Checklist-to-skills mapping ──
+// ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
-  cinto: "Preparação",
-  partida: "Preparação",
-  seta: "Sinalização",
-  retrovisores: "Observação",
-  embreagem: "Controle do Veículo",
-  faixa: "Direção Defensiva",
-  velocidade: "Controle do Veículo",
-  parada: "Controle do Veículo",
-  conversao: "Manobras",
-  retorno: "Manobras",
-  baliza: "Baliza",
+  cinto: "Controle de Embreagem",       // preparation → closest match
+  partida: "Controle de Embreagem",
+  seta: "Sinalização e Faixa",
+  retrovisores: "Uso de Espelhos",
+  embreagem: "Controle de Embreagem",
+  faixa: "Sinalização e Faixa",
+  velocidade: "Direção Defensiva",
+  parada: "Controle de Embreagem",
+  conversao: "Conversões e Manobras",
+  retorno: "Conversões e Manobras",
+  baliza: "Baliza / Estacionamento",
   pedestre: "Direção Defensiva",
-  sinalizacao: "Sinalização",
-  rotatoria: "Manobras",
+  sinalizacao: "Sinalização e Faixa",
+  rotatoria: "Conversões e Manobras",
   ultrapassagem: "Direção Defensiva",
 };
 
