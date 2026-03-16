@@ -61,6 +61,7 @@ function KpiSkeleton() {
 
 interface ActiveLessonData {
   id: string;
+  studentId?: string;
   studentName: string;
   startTime: string;
   endTime: string;
