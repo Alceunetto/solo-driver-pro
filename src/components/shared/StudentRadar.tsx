@@ -47,7 +47,11 @@ export function StudentRadar({
       </CardHeader>
       <CardContent className="space-y-3 pb-4">
         {students.map((s) => (
-          <div key={s.id} className="space-y-1.5">
+          <div
+            key={s.id}
+            className="space-y-1.5 cursor-pointer rounded-lg p-2 -mx-2 hover:bg-muted/50 transition-colors"
+            onClick={() => navigate(`/prontuario/${s.id}`)}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-foreground">{s.name}</span>
