@@ -79,6 +79,9 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const plan = searchParams.get("plan") || "free";
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL);
