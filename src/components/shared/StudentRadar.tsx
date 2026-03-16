@@ -24,6 +24,7 @@ export function StudentRadar({
   onUpgrade,
 }: StudentRadarProps) {
   const isAtLimit = !canAdd;
+  const navigate = useNavigate();
 
   return (
     <Card className="border-border/50">
