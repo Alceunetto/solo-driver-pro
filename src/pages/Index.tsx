@@ -22,6 +22,7 @@ import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
+import { saveEvaluations } from "@/services/evaluationService";
 
 // ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
