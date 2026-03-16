@@ -13,6 +13,7 @@ import Documentos from "./pages/Documentos";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Landing from "./pages/Landing";
+import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
