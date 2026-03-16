@@ -13,6 +13,7 @@ import Documentos from "./pages/Documentos";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Landing from "./pages/Landing";
+import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/simulado" element={<ProtectedRoute><Simulado /></ProtectedRoute>} />
             <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
             <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
+            <Route path="/student/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

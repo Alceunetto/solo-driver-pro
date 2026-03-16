@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import type { Student } from "@/types";
 
 export const studentService = {
@@ -11,14 +11,24 @@ export const studentService = {
     return (data ?? []) as unknown as Student[];
   },
 
-  getById: async (id: string): Promise<Student> => {
+  getById: async (id: string): Promise<Student | null> => {
     const { data, error } = await supabase
       .from("students")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
-    return data as unknown as Student;
+    return data as unknown as Student | null;
+  },
+
+  getStudentLessons: async (studentId: string) => {
+    const { data, error } = await supabase
+      .from("lessons")
+      .select("*")
+      .eq("student_id", studentId)
+      .order("date", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
   },
 
   create: async (student: Partial<Student>): Promise<Student> => {
