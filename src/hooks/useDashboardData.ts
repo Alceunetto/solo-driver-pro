@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { MonthlyFinancials, WeeklyDataPoint, SubscriptionPlan } from "@/types/solodrive";
 import {
   calculateNetProfit,
@@ -10,6 +11,7 @@ import {
 } from "@/services/financials";
 import { canAddStudent, getStudentLimit } from "@/services/planGuard";
 import { useStudents } from "@/hooks/useStudents";
+import { supabase } from "@/integrations/supabase/client";
 
 // ── Mock data (will be replaced by TanStack Query fetches) ──
 
@@ -36,17 +38,47 @@ const MOCK_MONTH: MonthlyFinancials = {
   autoescolaEquiv: 5400,
 };
 
-const NEXT_LESSONS = [
-  { student: "Carlos Silva", time: "08:00", location: "Rua das Flores, 120", address: "Rua das Flores, 120, São Paulo" },
-  { student: "Ana Oliveira", time: "09:30", location: "Estação Conceição", address: "Estação Conceição, São Paulo" },
-  { student: "Pedro Santos", time: "11:00", location: "Detran - Campo de Baliza", address: "Detran Santo Amaro, São Paulo" },
-];
+export interface NextLesson {
+  id: string;
+  student: string;
+  studentId: string | null;
+  time: string;
+  location: string;
+  address: string;
+}
+
+async function fetchNextLessons(): Promise<NextLesson[]> {
+  const today = new Date().toISOString().split("T")[0];
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, student_name, student_id, start_time, meeting_location, meeting_address, date")
+    .gte("date", today)
+    .eq("status", "agendada")
+    .order("date", { ascending: true })
+    .order("start_time", { ascending: true })
+    .limit(5);
+
+  if (error) throw error;
+
+  return (data ?? []).map((l) => ({
+    id: l.id,
+    student: l.student_name,
+    studentId: l.student_id,
+    time: l.start_time?.substring(0, 5) ?? "",
+    location: l.meeting_location,
+    address: l.meeting_address,
+  }));
+}
 
 export function useDashboardData(userPlan: SubscriptionPlan = "free") {
   const { students, isLoading: studentsLoading } = useStudents();
   const month = MOCK_MONTH;
   const weeklyData = WEEKLY_DATA;
-  const nextLessons = NEXT_LESSONS;
+
+  const { data: nextLessons = [], isLoading: lessonsLoading } = useQuery({
+    queryKey: ["next-lessons"],
+    queryFn: fetchNextLessons,
+  });
 
   const computed = useMemo(() => {
     const { totalCosts, netProfit } = calculateNetProfit(month);
@@ -77,7 +109,7 @@ export function useDashboardData(userPlan: SubscriptionPlan = "free") {
     weeklyData,
     nextLessons,
     ...computed,
-    isLoading: studentsLoading,
+    isLoading: studentsLoading || lessonsLoading,
     error: null,
   };
 }
