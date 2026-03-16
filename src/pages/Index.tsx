@@ -74,7 +74,8 @@ interface ActiveLessonData {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const { user, signOut } = useAuth();
   const [isDark, setIsDark] = useState(true);
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
