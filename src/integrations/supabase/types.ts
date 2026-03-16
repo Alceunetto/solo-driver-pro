@@ -157,6 +157,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          onboarding_completed: boolean
           plan: string
           role: string
           student_limit: number
@@ -168,6 +169,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id: string
+          onboarding_completed?: boolean
           plan?: string
           role?: string
           student_limit?: number
@@ -179,6 +181,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          onboarding_completed?: boolean
           plan?: string
           role?: string
           student_limit?: number
