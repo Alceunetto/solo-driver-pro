@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { MonthlyFinancials, WeeklyDataPoint, Student, SubscriptionPlan } from "@/types/solodrive";
+import { MonthlyFinancials, WeeklyDataPoint, SubscriptionPlan } from "@/types/solodrive";
 import {
   calculateNetProfit,
   calculateHourlyRate,
@@ -9,6 +9,7 @@ import {
   calculateKmToOilChange,
 } from "@/services/financials";
 import { canAddStudent, getStudentLimit } from "@/services/planGuard";
+import { useStudents } from "@/hooks/useStudents";
 
 // ── Mock data (will be replaced by TanStack Query fetches) ──
 
@@ -20,12 +21,6 @@ const WEEKLY_DATA: WeeklyDataPoint[] = [
   { day: "Sex", receita: 480, despesa: 55 },
   { day: "Sáb", receita: 720, despesa: 90 },
   { day: "Dom", receita: 0, despesa: 0 },
-];
-
-const MOCK_STUDENTS: Student[] = [
-  { id: "1", instructor_id: "i1", name: "Carlos Silva", whatsapp: "11999990001", progress: 75, total_lessons: 12, completed_lessons: 8, paid: true, status: "active", created_at: "" },
-  { id: "2", instructor_id: "i1", name: "Ana Oliveira", whatsapp: "11999990002", progress: 45, total_lessons: 10, completed_lessons: 4, paid: false, status: "active", created_at: "" },
-  { id: "3", instructor_id: "i1", name: "Pedro Santos", whatsapp: "11999990003", progress: 90, total_lessons: 20, completed_lessons: 18, paid: true, status: "active", created_at: "" },
 ];
 
 const MOCK_MONTH: MonthlyFinancials = {
@@ -48,7 +43,7 @@ const NEXT_LESSONS = [
 ];
 
 export function useDashboardData(userPlan: SubscriptionPlan = "free") {
-  const students = MOCK_STUDENTS;
+  const { students, isLoading: studentsLoading } = useStudents();
   const month = MOCK_MONTH;
   const weeklyData = WEEKLY_DATA;
   const nextLessons = NEXT_LESSONS;
@@ -82,7 +77,7 @@ export function useDashboardData(userPlan: SubscriptionPlan = "free") {
     weeklyData,
     nextLessons,
     ...computed,
-    isLoading: false,
+    isLoading: studentsLoading,
     error: null,
   };
 }
