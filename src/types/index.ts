@@ -94,6 +94,43 @@ export interface PerformanceMetrics {
   fuelCost: number;
 }
 
+// ── Skill Metrics ──
+
+export const DETRAN_SKILLS = [
+  "Controle de Embreagem",
+  "Baliza / Estacionamento",
+  "Direção Defensiva",
+  "Sinalização e Faixa",
+  "Uso de Espelhos",
+  "Conversões e Manobras",
+] as const;
+
+export type DetranSkillName = (typeof DETRAN_SKILLS)[number];
+
+export interface SkillMetric {
+  name: DetranSkillName;
+  average: number; // 0-100
+  lastScore: number | null; // most recent lesson score
+  trend: "up" | "down" | "stable" | "none"; // comparing last to average
+  totalEvaluations: number;
+}
+
+export interface SkillMetrics {
+  skills: SkillMetric[];
+  overallAverage: number;
+  totalLessonsEvaluated: number;
+}
+
+export interface LessonEvaluation {
+  id: string;
+  lesson_id: string;
+  student_id: string;
+  instructor_id: string;
+  skill_name: string;
+  score: number;
+  created_at: string;
+}
+
 export interface MonthlyFinancials {
   revenue: number;
   prevRevenue: number;

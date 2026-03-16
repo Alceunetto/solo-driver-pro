@@ -44,6 +44,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_evaluations: {
+        Row: {
+          created_at: string
+          id: string
+          instructor_id: string
+          lesson_id: string
+          score: number
+          skill_name: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructor_id: string
+          lesson_id: string
+          score?: number
+          skill_name: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructor_id?: string
+          lesson_id?: string
+          score?: number
+          skill_name?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_evaluations_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_evaluations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           created_at: string
