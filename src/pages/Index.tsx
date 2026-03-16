@@ -143,7 +143,7 @@ const Index = () => {
     toast({ title: "Aula iniciada!", description: `Aula com ${lesson.student}` });
   };
 
-  const handleFinishLesson = (checkedItems: string[], elapsedSeconds: number) => {
+  const handleFinishLesson = async (checkedItems: string[], elapsedSeconds: number) => {
     if (!activeLesson) return;
 
     // Build skills from checklist
@@ -171,6 +171,25 @@ const Index = () => {
     );
 
     const durationMinutes = Math.ceil(elapsedSeconds / 60);
+
+    // Save evaluations to database
+    if (activeLesson.studentId && user?.id) {
+      try {
+        const scores: Record<string, number> = {};
+        skills.forEach((s) => { scores[s.name] = s.value; });
+        await saveEvaluations(activeLesson.id, activeLesson.studentId, user.id, scores);
+        // Invalidate skill queries so prontuário updates
+        queryClient.invalidateQueries({ queryKey: ["student-skills", activeLesson.studentId] });
+        queryClient.invalidateQueries({ queryKey: ["student-lessons", activeLesson.studentId] });
+      } catch (err) {
+        console.error("Erro ao salvar avaliações:", err);
+        toast({
+          title: "Aviso",
+          description: "Avaliações não foram salvas no banco, mas o relatório foi gerado.",
+          variant: "destructive",
+        });
+      }
+    }
 
     setReportData({
       studentName: activeLesson.studentName,
