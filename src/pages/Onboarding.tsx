@@ -1,10 +1,15 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   User, Car, DollarSign, ChevronRight, ChevronLeft,
   Camera, Check, Loader2, Fuel, Gauge, CreditCard, Package,
   Gift, Sparkles,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { PROFILE_QUERY_KEY } from "@/hooks/useProfile";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
