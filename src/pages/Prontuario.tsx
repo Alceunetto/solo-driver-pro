@@ -184,7 +184,7 @@ export default function Prontuario() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <SkillRadarChart skills={skills} isEmpty={isEmpty} />
+            <SkillRadarChart skills={skills} isEmpty={isEmpty} growthSkills={growth?.skills} />
           </CardContent>
         </Card>
 
