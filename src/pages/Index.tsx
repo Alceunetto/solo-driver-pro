@@ -84,6 +84,7 @@ const Index = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(null);
   const [reportData, setReportData] = useState<any>(null);
+  const [newStudentOpen, setNewStudentOpen] = useState(false);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
