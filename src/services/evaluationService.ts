@@ -146,14 +146,3 @@ export async function saveEvaluations(
   const { error } = await supabase.from("lesson_evaluations").insert(rows as any);
   if (error) throw error;
 }
-  const rows = Object.entries(scores).map(([skill_name, score]) => ({
-    lesson_id: lessonId,
-    student_id: studentId,
-    instructor_id: instructorId,
-    skill_name,
-    score,
-  }));
-
-  const { error } = await supabase.from("lesson_evaluations").insert(rows as any);
-  if (error) throw error;
-}
