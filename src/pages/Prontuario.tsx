@@ -16,8 +16,10 @@ import { SkillCardAnimated } from "@/components/shared/SkillCardAnimated";
 import { StudentBadges } from "@/components/shared/StudentBadges";
 import { LessonTimeline } from "@/components/shared/LessonTimeline";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
+import { GrowthSummaryCard } from "@/components/shared/GrowthSummaryCard";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
+import { useStudentGrowth } from "@/hooks/useStudentGrowth";
 import { useToast } from "@/hooks/use-toast";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
