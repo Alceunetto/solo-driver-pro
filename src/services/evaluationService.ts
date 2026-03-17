@@ -3,11 +3,11 @@ import type { SkillMetrics, SkillMetric, DetranSkillName, DETRAN_SKILLS, LessonE
 
 const SKILL_LIST: readonly string[] = [
   "Controle de Embreagem",
-  "Baliza / Estacionamento",
-  "Direção Defensiva",
-  "Sinalização e Faixa",
-  "Uso de Espelhos",
-  "Conversões e Manobras",
+  "Baliza",
+  "Sinalização",
+  "Frenagem",
+  "Noção de Espaço",
+  "Arrancada em Aclive",
 ];
 
 export async function getStudentSkillMetrics(studentId: string): Promise<SkillMetrics> {

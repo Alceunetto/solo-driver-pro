@@ -17,6 +17,7 @@ import { TimelineLogistica } from "@/components/TimelineLogistica";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { ActiveLesson } from "@/components/shared/ActiveLesson";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
+import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,21 +27,22 @@ import { saveEvaluations } from "@/services/evaluationService";
 
 // ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
-  cinto: "Controle de Embreagem",       // preparation → closest match
+  cinto: "Controle de Embreagem",
   partida: "Controle de Embreagem",
-  seta: "Sinalização e Faixa",
-  retrovisores: "Uso de Espelhos",
+  seta: "Sinalização",
+  retrovisores: "Noção de Espaço",
   embreagem: "Controle de Embreagem",
-  faixa: "Sinalização e Faixa",
-  velocidade: "Direção Defensiva",
-  parada: "Controle de Embreagem",
-  conversao: "Conversões e Manobras",
-  retorno: "Conversões e Manobras",
-  baliza: "Baliza / Estacionamento",
-  pedestre: "Direção Defensiva",
-  sinalizacao: "Sinalização e Faixa",
-  rotatoria: "Conversões e Manobras",
-  ultrapassagem: "Direção Defensiva",
+  faixa: "Sinalização",
+  velocidade: "Frenagem",
+  parada: "Frenagem",
+  conversao: "Noção de Espaço",
+  retorno: "Noção de Espaço",
+  baliza: "Baliza",
+  pedestre: "Sinalização",
+  sinalizacao: "Sinalização",
+  rotatoria: "Noção de Espaço",
+  ultrapassagem: "Frenagem",
+  arrancada: "Arrancada em Aclive",
 };
 
 const SKILL_NAMES = [...new Set(Object.values(CHECKLIST_TO_SKILL))];
@@ -82,6 +84,7 @@ const Index = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(null);
   const [reportData, setReportData] = useState<any>(null);
+  const [newStudentOpen, setNewStudentOpen] = useState(false);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
@@ -105,7 +108,7 @@ const Index = () => {
     if (!canAdd) {
       setUpgradeOpen(true);
     } else {
-      toast({ title: "Novo aluno", description: "Formulário em breve!" });
+      setNewStudentOpen(true);
     }
   };
 
@@ -398,6 +401,7 @@ const Index = () => {
       </main>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <NewStudentDialog open={newStudentOpen} onOpenChange={setNewStudentOpen} />
 
       {/* Performance Report after finishing a lesson */}
       <PerformanceReport

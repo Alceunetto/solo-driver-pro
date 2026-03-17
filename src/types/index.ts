@@ -23,6 +23,8 @@ export interface Student {
   whatsapp: string;
   email?: string;
   cpf?: string;
+  category?: string;
+  exam_date?: string;
   progress: number; // 0-100
   total_lessons: number;
   completed_lessons: number;
@@ -98,11 +100,11 @@ export interface PerformanceMetrics {
 
 export const DETRAN_SKILLS = [
   "Controle de Embreagem",
-  "Baliza / Estacionamento",
-  "Direção Defensiva",
-  "Sinalização e Faixa",
-  "Uso de Espelhos",
-  "Conversões e Manobras",
+  "Baliza",
+  "Sinalização",
+  "Frenagem",
+  "Noção de Espaço",
+  "Arrancada em Aclive",
 ] as const;
 
 export type DetranSkillName = (typeof DETRAN_SKILLS)[number];
