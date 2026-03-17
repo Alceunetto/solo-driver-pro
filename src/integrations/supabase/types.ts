@@ -192,10 +192,12 @@ export type Database = {
       }
       students: {
         Row: {
+          category: string
           completed_lessons: number
           cpf: string | null
           created_at: string
           email: string | null
+          exam_date: string | null
           id: string
           instructor_id: string
           name: string
@@ -206,10 +208,12 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          category?: string
           completed_lessons?: number
           cpf?: string | null
           created_at?: string
           email?: string | null
+          exam_date?: string | null
           id?: string
           instructor_id: string
           name: string
@@ -220,10 +224,12 @@ export type Database = {
           whatsapp?: string
         }
         Update: {
+          category?: string
           completed_lessons?: number
           cpf?: string | null
           created_at?: string
           email?: string | null
+          exam_date?: string | null
           id?: string
           instructor_id?: string
           name?: string
