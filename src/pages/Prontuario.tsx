@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Star, TrendingUp, Camera, Share2, BookOpen, Award,
+  Search, UserPlus, Users,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { SkillRadarChart } from "@/components/shared/SkillRadarChart";
 import { SkillCardAnimated } from "@/components/shared/SkillCardAnimated";
 import { StudentBadges } from "@/components/shared/StudentBadges";
@@ -20,6 +22,7 @@ import { GrowthSummaryCard } from "@/components/shared/GrowthSummaryCard";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { useStudentGrowth } from "@/hooks/useStudentGrowth";
+import { useStudents } from "@/hooks/useStudents";
 import { useToast } from "@/hooks/use-toast";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
@@ -27,6 +30,154 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   completed: { label: "Concluído", className: "bg-primary/15 text-primary border-0" },
   inactive: { label: "Inativo", className: "bg-muted text-muted-foreground border-0" },
 };
+
+function StudentListSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-card">
+          <Skeleton className="w-12 h-12 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-3 w-full max-w-[200px]" />
+            <Skeleton className="h-2 w-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StudentList() {
+  const navigate = useNavigate();
+  const { students, isLoading } = useStudents();
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return students;
+    const q = search.toLowerCase();
+    return students.filter((s) => s.name.toLowerCase().includes(q));
+  }, [students, search]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+          <div className="container flex items-center gap-3 py-3">
+            <Users className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-bold text-foreground">Prontuário</h1>
+          </div>
+        </header>
+        <div className="container py-5">
+          <Skeleton className="h-10 w-full rounded-lg mb-4" />
+          <StudentListSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+          <div className="container flex items-center gap-3 py-3">
+            <Users className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-bold text-foreground">Prontuário</h1>
+          </div>
+        </header>
+        <div className="container py-16 text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+            <UserPlus className="w-8 h-8 text-primary" />
+          </div>
+          <p className="text-lg font-semibold text-foreground">Nenhum aluno cadastrado</p>
+          <p className="text-sm text-muted-foreground">
+            Cadastre seu primeiro aluno para acompanhar o progresso dele aqui.
+          </p>
+          <Button onClick={() => navigate("/")} className="mt-2">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Cadastrar Meu Primeiro Aluno
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="container flex items-center gap-3 py-3">
+          <Users className="w-5 h-5 text-primary" />
+          <h1 className="text-lg font-bold text-foreground">Prontuário</h1>
+        </div>
+      </header>
+
+      <div className="container py-4 space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar aluno por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Student Cards */}
+        <div className="space-y-3">
+          {filtered.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              Nenhum aluno encontrado para "{search}"
+            </p>
+          ) : (
+            filtered.map((student, i) => {
+              const initials = student.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+              const statusCfg = STATUS_LABELS[student.status] ?? STATUS_LABELS.active;
+              const remaining = Math.max(0, student.total_lessons - student.completed_lessons);
+
+              return (
+                <motion.button
+                  key={student.id}
+                  onClick={() => navigate(`/prontuario/${student.id}`)}
+                  className="w-full text-left flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors active:scale-[0.98]"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: i * 0.04 }}
+                >
+                  <Avatar className="w-12 h-12 border-2 border-primary/20">
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-foreground truncate">{student.name}</p>
+                      <Badge className={`${statusCfg.className} text-[10px] shrink-0`}>
+                        {statusCfg.label}
+                      </Badge>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      {student.completed_lessons}/{student.total_lessons} aulas · {remaining} restantes
+                    </p>
+
+                    <Progress value={student.progress} className="h-1.5" />
+                  </div>
+                </motion.button>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ProfileSkeleton() {
   return (
@@ -58,7 +209,6 @@ export default function Prontuario() {
   const { toast } = useToast();
   const [reportOpen, setReportOpen] = useState(false);
 
-  // If no id in URL, show student picker or redirect
   const { student, lessons, isLoading: profileLoading } = useStudentProfile(id);
   const { data: metrics, isLoading: metricsLoading } = useStudentProgress(id);
   const { data: growth, isLoading: growthLoading } = useStudentGrowth(id);
@@ -66,27 +216,7 @@ export default function Prontuario() {
   const isLoading = profileLoading || metricsLoading || growthLoading;
 
   if (!id) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
-          <div className="container flex items-center gap-3 py-3">
-            <button onClick={() => navigate(-1)} className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-lg font-bold text-foreground">Prontuário</h1>
-          </div>
-        </header>
-        <div className="container py-12 text-center space-y-4">
-          <p className="text-lg font-semibold text-foreground">Selecione um aluno</p>
-          <p className="text-sm text-muted-foreground">
-            Acesse o perfil de um aluno no dashboard para ver o prontuário detalhado.
-          </p>
-          <Button variant="outline" onClick={() => navigate("/")}>
-            Voltar ao Dashboard
-          </Button>
-        </div>
-      </div>
-    );
+    return <StudentList />;
   }
 
   if (isLoading) return <ProfileSkeleton />;
