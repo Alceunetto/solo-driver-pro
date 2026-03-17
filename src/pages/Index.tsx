@@ -26,21 +26,22 @@ import { saveEvaluations } from "@/services/evaluationService";
 
 // ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
-  cinto: "Controle de Embreagem",       // preparation → closest match
+  cinto: "Controle de Embreagem",
   partida: "Controle de Embreagem",
-  seta: "Sinalização e Faixa",
-  retrovisores: "Uso de Espelhos",
+  seta: "Sinalização",
+  retrovisores: "Noção de Espaço",
   embreagem: "Controle de Embreagem",
-  faixa: "Sinalização e Faixa",
-  velocidade: "Direção Defensiva",
-  parada: "Controle de Embreagem",
-  conversao: "Conversões e Manobras",
-  retorno: "Conversões e Manobras",
-  baliza: "Baliza / Estacionamento",
-  pedestre: "Direção Defensiva",
-  sinalizacao: "Sinalização e Faixa",
-  rotatoria: "Conversões e Manobras",
-  ultrapassagem: "Direção Defensiva",
+  faixa: "Sinalização",
+  velocidade: "Frenagem",
+  parada: "Frenagem",
+  conversao: "Noção de Espaço",
+  retorno: "Noção de Espaço",
+  baliza: "Baliza",
+  pedestre: "Sinalização",
+  sinalizacao: "Sinalização",
+  rotatoria: "Noção de Espaço",
+  ultrapassagem: "Frenagem",
+  arrancada: "Arrancada em Aclive",
 };
 
 const SKILL_NAMES = [...new Set(Object.values(CHECKLIST_TO_SKILL))];

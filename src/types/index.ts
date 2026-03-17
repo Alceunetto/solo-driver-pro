@@ -100,11 +100,11 @@ export interface PerformanceMetrics {
 
 export const DETRAN_SKILLS = [
   "Controle de Embreagem",
-  "Baliza / Estacionamento",
-  "Direção Defensiva",
-  "Sinalização e Faixa",
-  "Uso de Espelhos",
-  "Conversões e Manobras",
+  "Baliza",
+  "Sinalização",
+  "Frenagem",
+  "Noção de Espaço",
+  "Arrancada em Aclive",
 ] as const;
 
 export type DetranSkillName = (typeof DETRAN_SKILLS)[number];
