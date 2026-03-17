@@ -401,6 +401,7 @@ const Index = () => {
       </main>
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <NewStudentDialog open={newStudentOpen} onOpenChange={setNewStudentOpen} />
 
       {/* Performance Report after finishing a lesson */}
       <PerformanceReport
