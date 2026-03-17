@@ -61,8 +61,9 @@ export default function Prontuario() {
   // If no id in URL, show student picker or redirect
   const { student, lessons, isLoading: profileLoading } = useStudentProfile(id);
   const { data: metrics, isLoading: metricsLoading } = useStudentProgress(id);
+  const { data: growth, isLoading: growthLoading } = useStudentGrowth(id);
 
-  const isLoading = profileLoading || metricsLoading;
+  const isLoading = profileLoading || metricsLoading || growthLoading;
 
   if (!id) {
     return (
