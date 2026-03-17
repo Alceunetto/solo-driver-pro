@@ -188,6 +188,10 @@ export default function Prontuario() {
           </CardContent>
         </Card>
 
+
+        {/* Growth Summary */}
+        {growth && <GrowthSummaryCard growth={growth} />}
+
         {/* Skill Cards */}
         <Card className="glass-card border-0">
           <CardHeader className="pb-3">
