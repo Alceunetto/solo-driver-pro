@@ -23,6 +23,8 @@ export interface Student {
   whatsapp: string;
   email?: string;
   cpf?: string;
+  category?: string;
+  exam_date?: string;
   progress: number; // 0-100
   total_lessons: number;
   completed_lessons: number;
