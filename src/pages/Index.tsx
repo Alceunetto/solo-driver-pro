@@ -17,6 +17,7 @@ import { TimelineLogistica } from "@/components/TimelineLogistica";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { ActiveLesson } from "@/components/shared/ActiveLesson";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
+import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
