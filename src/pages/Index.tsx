@@ -108,7 +108,7 @@ const Index = () => {
     if (!canAdd) {
       setUpgradeOpen(true);
     } else {
-      toast({ title: "Novo aluno", description: "Formulário em breve!" });
+      setNewStudentOpen(true);
     }
   };
 
