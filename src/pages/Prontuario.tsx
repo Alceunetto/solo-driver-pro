@@ -16,8 +16,10 @@ import { SkillCardAnimated } from "@/components/shared/SkillCardAnimated";
 import { StudentBadges } from "@/components/shared/StudentBadges";
 import { LessonTimeline } from "@/components/shared/LessonTimeline";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
+import { GrowthSummaryCard } from "@/components/shared/GrowthSummaryCard";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
+import { useStudentGrowth } from "@/hooks/useStudentGrowth";
 import { useToast } from "@/hooks/use-toast";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
@@ -59,8 +61,9 @@ export default function Prontuario() {
   // If no id in URL, show student picker or redirect
   const { student, lessons, isLoading: profileLoading } = useStudentProfile(id);
   const { data: metrics, isLoading: metricsLoading } = useStudentProgress(id);
+  const { data: growth, isLoading: growthLoading } = useStudentGrowth(id);
 
-  const isLoading = profileLoading || metricsLoading;
+  const isLoading = profileLoading || metricsLoading || growthLoading;
 
   if (!id) {
     return (
@@ -181,9 +184,13 @@ export default function Prontuario() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <SkillRadarChart skills={skills} isEmpty={isEmpty} />
+            <SkillRadarChart skills={skills} isEmpty={isEmpty} growthSkills={growth?.skills} />
           </CardContent>
         </Card>
+
+
+        {/* Growth Summary */}
+        {growth && <GrowthSummaryCard growth={growth} />}
 
         {/* Skill Cards */}
         <Card className="glass-card border-0">
