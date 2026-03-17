@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lesson } from "@/types/solodrive";
 import { LessonCard } from "./shared/LessonCard";
 import { DisplacementGapCard } from "./shared/DisplacementGapCard";
@@ -6,47 +7,94 @@ import { AddLessonDialog } from "./shared/AddLessonDialog";
 import { calculateGaps, openInWaze, openInGoogleMaps } from "@/lib/schedule";
 import { Plus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
-const DEMO_LESSONS: Lesson[] = [
-  {
-    id: "1",
-    studentName: "Carlos Silva",
-    startTime: "08:00",
-    endTime: "09:00",
-    meetingLocation: "Casa do aluno - Rua das Flores, 120",
-    endLocation: "Metrô Jabaquara",
-    meetingAddress: "Rua das Flores, 120, São Paulo, SP",
-    type: "pratica",
-    status: "agendada",
-    value: 120,
-  },
-  {
-    id: "2",
-    studentName: "Ana Oliveira",
-    startTime: "09:30",
-    endTime: "10:30",
-    meetingLocation: "Estação Conceição",
-    endLocation: "Detran - Campo de Baliza",
-    meetingAddress: "Estação Conceição, São Paulo, SP",
-    type: "baliza",
-    status: "agendada",
-    value: 140,
-  },
-];
+function getTodayIsoDate() {
+  return new Date().toISOString().split("T")[0];
+}
+
+async function fetchTimelineLessons(): Promise<Lesson[]> {
+  const today = getTodayIsoDate();
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, student_name, start_time, end_time, meeting_location, end_location, meeting_address, type, status, price")
+    .eq("date", today)
+    .in("status", ["agendada", "em_andamento"])
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? []).map((lesson) => ({
+    id: lesson.id,
+    studentName: lesson.student_name,
+    startTime: lesson.start_time?.slice(0, 5) ?? "00:00",
+    endTime: lesson.end_time?.slice(0, 5) ?? "00:00",
+    meetingLocation: lesson.meeting_location,
+    endLocation: lesson.end_location,
+    meetingAddress: lesson.meeting_address,
+    type: lesson.type as Lesson["type"],
+    status: lesson.status as Lesson["status"],
+    value: Number(lesson.price ?? 0),
+  }));
+}
 
 export function TimelineLogistica() {
-  const [lessons, setLessons] = useState<Lesson[]>(DEMO_LESSONS);
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const sorted = [...lessons].sort((a, b) => a.startTime.localeCompare(b.startTime));
-  const gaps = calculateGaps(lessons, gapMinutes);
+  const { data: lessons = [] } = useQuery({
+    queryKey: ["timeline-lessons"],
+    queryFn: fetchTimelineLessons,
+  });
 
-  const addLesson = (lesson: Omit<Lesson, "id">) => {
-    setLessons((prev) => [...prev, { ...lesson, id: crypto.randomUUID() }]);
-  };
+  const createLesson = useMutation({
+    mutationFn: async (lesson: Omit<Lesson, "id"> & { studentId?: string }) => {
+      if (!user?.id) throw new Error("Usuário não autenticado.");
 
-  const totalValue = lessons.reduce((sum, l) => sum + l.value, 0);
+      const { error } = await supabase.from("lessons").insert({
+        instructor_id: user.id,
+        student_id: lesson.studentId ?? null,
+        student_name: lesson.studentName,
+        date: getTodayIsoDate(),
+        start_time: lesson.startTime,
+        end_time: lesson.endTime,
+        meeting_location: lesson.meetingLocation,
+        end_location: lesson.endLocation,
+        meeting_address: lesson.meetingAddress,
+        type: lesson.type,
+        status: lesson.status,
+        price: lesson.value,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
+      setDialogOpen(false);
+      toast({ title: "Aula criada", description: "A aula já está em Próximas Aulas." });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar aula",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sorted = useMemo(
+    () => [...lessons].sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    [lessons]
+  );
+  const gaps = useMemo(() => calculateGaps(sorted, gapMinutes), [sorted, gapMinutes]);
+
+  const totalValue = sorted.reduce((sum, l) => sum + l.value, 0);
   const hasConflicts = gaps.some((g) => g.hasConflict);
 
   return (
@@ -97,7 +145,7 @@ export function TimelineLogistica() {
           </div>
         )}
 
-        {sorted.map((lesson, index) => {
+        {sorted.map((lesson) => {
           const gap = gaps.find((g) => g.fromLesson.id === lesson.id);
           return (
             <div key={lesson.id}>
@@ -112,7 +160,11 @@ export function TimelineLogistica() {
         })}
       </div>
 
-      <AddLessonDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addLesson} />
+      <AddLessonDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onAdd={(lesson) => createLesson.mutate(lesson)}
+      />
     </div>
   );
 }
