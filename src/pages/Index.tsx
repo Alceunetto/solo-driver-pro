@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
   Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award, LogOut,
+  UserPlus, CalendarPlus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { NextLessonCard } from "@/components/shared/NextLessonCard";
 import { StudentRadar } from "@/components/shared/StudentRadar";
@@ -18,6 +19,9 @@ import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { ActiveLesson } from "@/components/shared/ActiveLesson";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
 import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
+import { FloatingActionButton, triggerHaptic } from "@/components/shared/FloatingActionButton";
+import { PageTransition } from "@/components/shared/PageTransition";
+import { ShimmerSkeleton } from "@/components/shared/ShimmerSkeleton";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +29,6 @@ import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 import { saveEvaluations } from "@/services/evaluationService";
 
-// ── Checklist-to-DETRAN-skills mapping (matches lesson_evaluations skill_name) ──
 const CHECKLIST_TO_SKILL: Record<string, string> = {
   cinto: "Controle de Embreagem",
   partida: "Controle de Embreagem",
@@ -49,16 +52,14 @@ const SKILL_NAMES = [...new Set(Object.values(CHECKLIST_TO_SKILL))];
 
 function KpiSkeleton() {
   return (
-    <Card className="border-border/50">
-      <CardContent className="p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="w-7 h-7 rounded-lg" />
-          <Skeleton className="h-3 w-16" />
-        </div>
-        <Skeleton className="h-7 w-24" />
-        <Skeleton className="h-3 w-32" />
-      </CardContent>
-    </Card>
+    <div className="glass-card p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <ShimmerSkeleton className="w-8 h-8 rounded-xl" />
+        <ShimmerSkeleton className="h-3 w-16" />
+      </div>
+      <ShimmerSkeleton className="h-8 w-24" />
+      <ShimmerSkeleton className="h-3 w-32" />
+    </div>
   );
 }
 
@@ -122,6 +123,7 @@ const Index = () => {
       return;
     }
 
+    triggerHaptic(25);
     const lesson = nextLessons[index];
     setActiveLesson({
       id: lesson.id,
@@ -145,7 +147,8 @@ const Index = () => {
   const handleFinishLesson = async (checkedItems: string[], elapsedSeconds: number) => {
     if (!activeLesson) return;
 
-    // Build skills from checklist
+    triggerHaptic(30);
+
     const skillScores: Record<string, { checked: number; total: number }> = {};
     SKILL_NAMES.forEach((name) => {
       skillScores[name] = { checked: 0, total: 0 };
@@ -171,13 +174,11 @@ const Index = () => {
 
     const durationMinutes = Math.ceil(elapsedSeconds / 60);
 
-    // Save evaluations to database
     if (activeLesson.studentId && user?.id) {
       try {
         const scores: Record<string, number> = {};
         skills.forEach((s) => { scores[s.name] = s.value; });
         await saveEvaluations(activeLesson.id, activeLesson.studentId, user.id, scores);
-        // Invalidate skill queries so prontuário updates
         queryClient.invalidateQueries({ queryKey: ["student-skills", activeLesson.studentId] });
         queryClient.invalidateQueries({ queryKey: ["student-lessons", activeLesson.studentId] });
       } catch (err) {
@@ -214,7 +215,6 @@ const Index = () => {
   const masked = (v: string) => (showFinancials ? v : "••••");
   const profitColor = netProfit >= 0 ? "text-success" : "text-destructive";
 
-  // Active lesson fullscreen
   if (activeLesson) {
     return (
       <ActiveLesson
@@ -225,24 +225,42 @@ const Index = () => {
     );
   }
 
+  const fabActions = [
+    {
+      icon: UserPlus,
+      label: "Novo Aluno",
+      onClick: handleAddStudent,
+      colorClass: "bg-success/15",
+    },
+    {
+      icon: CalendarPlus,
+      label: "Nova Aula",
+      onClick: () => {
+        const el = document.getElementById("timeline-section");
+        el?.scrollIntoView({ behavior: "smooth" });
+      },
+      colorClass: "bg-primary/15",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background transition-colors pb-24">
+    <PageTransition className="min-h-screen bg-background transition-colors pb-24">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50">
+      <header className="glass-header sticky top-0 z-50">
         <div className="container flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-2xl bg-primary/10 glow-primary">
               <Car className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground tracking-tight">SoloDrive</h1>
-              <p className="text-xs text-muted-foreground">Cockpit do Instrutor</p>
+              <h1 className="text-lg font-extrabold text-foreground tracking-tight">SoloDrive</h1>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Cockpit do Instrutor</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setShowFinancials(!showFinancials)}
-              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+              className="p-2.5 rounded-xl bg-secondary/60 hover:bg-secondary transition-colors active:scale-95"
               aria-label="Ocultar valores"
               title={showFinancials ? "Ocultar valores" : "Mostrar valores"}
             >
@@ -254,14 +272,14 @@ const Index = () => {
             </button>
             <button
               onClick={() => setIsDark(!isDark)}
-              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+              className="p-2.5 rounded-xl bg-secondary/60 hover:bg-secondary transition-colors active:scale-95"
               aria-label="Alternar tema"
             >
               {isDark ? <Sun className="w-5 h-5 text-accent" /> : <Moon className="w-5 h-5 text-foreground" />}
             </button>
             <button
               onClick={async () => { await signOut(); navigate("/auth", { replace: true }); }}
-              className="p-2 rounded-lg bg-secondary hover:bg-destructive/10 transition-colors"
+              className="p-2.5 rounded-xl bg-secondary/60 hover:bg-destructive/10 transition-colors active:scale-95"
               aria-label="Sair"
               title="Sair da conta"
             >
@@ -289,6 +307,7 @@ const Index = () => {
                 iconColorClass="text-primary"
                 label="Receita Mês"
                 value={masked(`R$ ${revenue.toLocaleString("pt-BR")}`)}
+                index={0}
                 footer={
                   <div className="flex items-center gap-1 text-xs">
                     {revenueGrowth >= 0 ? (
@@ -303,39 +322,46 @@ const Index = () => {
                 }
               />
 
-              <Card
-                className={`border-${netProfit >= 0 ? "success" : "destructive"}/30 cursor-pointer hover:border-${netProfit >= 0 ? "success" : "destructive"}/60 transition-colors`}
-                onClick={() => setBreakdownOpen(!breakdownOpen)}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.06 }}
               >
-                <CardContent className="p-4 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-1.5 rounded-lg ${netProfit >= 0 ? "bg-success/10" : "bg-destructive/10"}`}>
-                      <TrendingUp className={`w-4 h-4 ${profitColor}`} />
+                <Card
+                  className={`glass-card border-0 cursor-pointer hover:glow-${netProfit >= 0 ? "success" : "primary"} active:scale-[0.97] transition-all`}
+                  onClick={() => setBreakdownOpen(!breakdownOpen)}
+                >
+                  <CardContent className="p-4 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-xl ${netProfit >= 0 ? "bg-success/10" : "bg-destructive/10"}`}>
+                        <TrendingUp className={`w-4 h-4 ${profitColor}`} />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Lucro Líquido</span>
                     </div>
-                    <span className="text-[11px] text-muted-foreground font-medium">Lucro Líquido</span>
-                  </div>
-                  <p className={`text-2xl font-bold ${profitColor}`}>
-                    {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <Award className="w-3 h-3 text-primary" />
-                    <span className="text-[10px] text-primary font-medium">
-                      {showFinancials
-                        ? `+R$ ${independentGain.toLocaleString("pt-BR")} vs autoescola`
-                        : "•• vs autoescola"}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                    <p className={`text-2xl font-extrabold ${profitColor} tracking-tight`}>
+                      {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Award className="w-3 h-3 text-primary" />
+                      <span className="text-[10px] text-primary font-semibold">
+                        {showFinancials
+                          ? `+R$ ${independentGain.toLocaleString("pt-BR")} vs autoescola`
+                          : "•• vs autoescola"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               <StatsCard
                 icon={Clock}
                 iconBgClass="bg-accent/10"
                 iconColorClass="text-accent"
-                label="Valor/Hora Real"
+                label="Valor/Hora"
                 value={masked(`R$ ${hourlyRate.toFixed(0)}`)}
+                index={2}
                 footer={
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-[10px] text-muted-foreground font-medium">
                     {summary?.total_hours?.toFixed(0) ?? month.hours}h trabalhadas
                   </p>
                 }
@@ -347,10 +373,11 @@ const Index = () => {
                 iconColorClass={kmToOil < 2000 ? "text-warning" : "text-muted-foreground"}
                 label="Custo/Aula"
                 value={masked(`R$ ${costPerLesson.toFixed(1)}`)}
-                className={kmToOil < 2000 ? "border-warning/50" : ""}
+                className={kmToOil < 2000 ? "border border-warning/30" : ""}
+                index={3}
                 footer={
                   kmToOil < 2000 ? (
-                    <div className="flex items-center gap-1 text-[10px] text-warning font-medium">
+                    <div className="flex items-center gap-1 text-[10px] text-warning font-semibold">
                       <AlertTriangle className="w-3 h-3" />
                       Troca de óleo em {kmToOil.toLocaleString("pt-BR")} km
                     </div>
@@ -363,28 +390,48 @@ const Index = () => {
 
         {/* Breakdown */}
         {breakdownOpen && showFinancials && (
-          <CostBreakdown month={month} totalCosts={expenses} />
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <CostBreakdown month={month} totalCosts={expenses} />
+          </motion.div>
         )}
 
         {/* Weekly Chart */}
         <WeeklyChart data={weeklyData} visible={showFinancials} />
 
         {/* Next Lessons */}
-        <Card className="border-border/50">
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Próximas Aulas</span>
-            </div>
-            {nextLessons.map((lesson, i) => (
-              <NextLessonCard
-                key={i}
-                {...lesson}
-                onStart={() => handleStartLesson(i)}
-              />
-            ))}
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.15 }}
+        >
+          <Card className="glass-card border-0">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1.5 rounded-xl bg-primary/10">
+                  <Clock className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Próximas Aulas</span>
+              </div>
+              {nextLessons.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhuma aula agendada. Use o botão + para criar uma.
+                </p>
+              ) : (
+                nextLessons.map((lesson, i) => (
+                  <NextLessonCard
+                    key={i}
+                    {...lesson}
+                    onStart={() => handleStartLesson(i)}
+                  />
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Student Radar */}
         <StudentRadar
@@ -397,13 +444,17 @@ const Index = () => {
         />
 
         {/* Timeline */}
-        <TimelineLogistica />
+        <div id="timeline-section">
+          <TimelineLogistica />
+        </div>
       </main>
+
+      {/* FAB */}
+      <FloatingActionButton actions={fabActions} />
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       <NewStudentDialog open={newStudentOpen} onOpenChange={setNewStudentOpen} />
 
-      {/* Performance Report after finishing a lesson */}
       <PerformanceReport
         data={reportData ?? {
           studentName: "",
@@ -417,7 +468,7 @@ const Index = () => {
         open={!!reportData}
         onClose={() => setReportData(null)}
       />
-    </div>
+    </PageTransition>
   );
 };
 
