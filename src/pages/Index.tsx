@@ -23,11 +23,13 @@ import { FloatingActionButton, triggerHaptic } from "@/components/shared/Floatin
 import { PageTransition } from "@/components/shared/PageTransition";
 import { ShimmerSkeleton } from "@/components/shared/ShimmerSkeleton";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useFinance } from "@/hooks/useFinance";
+import { useFinance, FINANCE_QUERY_KEY, EXPENSES_QUERY_KEY } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 import { saveEvaluations } from "@/services/evaluationService";
+import { supabase } from "@/integrations/supabase/client";
 
 const CHECKLIST_TO_SKILL: Record<string, string> = {
   cinto: "Controle de Embreagem",
@@ -49,6 +51,8 @@ const CHECKLIST_TO_SKILL: Record<string, string> = {
 };
 
 const SKILL_NAMES = [...new Set(Object.values(CHECKLIST_TO_SKILL))];
+
+const ACTIVE_LESSON_KEY = "solodrive_active_lesson";
 
 function KpiSkeleton() {
   return (
@@ -72,18 +76,40 @@ interface ActiveLessonData {
   meetingLocation: string;
   type: string;
   value: number;
+  phone: string;
   index: number;
+  startedAt: number; // timestamp when lesson was started
+}
+
+function saveActiveLessonToStorage(lesson: ActiveLessonData | null) {
+  if (lesson) {
+    localStorage.setItem(ACTIVE_LESSON_KEY, JSON.stringify(lesson));
+  } else {
+    localStorage.removeItem(ACTIVE_LESSON_KEY);
+  }
+}
+
+function loadActiveLessonFromStorage(): ActiveLessonData | null {
+  try {
+    const stored = localStorage.getItem(ACTIVE_LESSON_KEY);
+    if (!stored) return null;
+    return JSON.parse(stored) as ActiveLessonData;
+  } catch {
+    localStorage.removeItem(ACTIVE_LESSON_KEY);
+    return null;
+  }
 }
 
 const Index = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const [isDark, setIsDark] = useState(true);
   const [showFinancials, setShowFinancials] = useState(true);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(null);
+  const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(() => loadActiveLessonFromStorage());
   const [reportData, setReportData] = useState<any>(null);
   const [newStudentOpen, setNewStudentOpen] = useState(false);
   const { toast } = useToast();
@@ -105,6 +131,11 @@ const Index = () => {
   const netProfit = summary?.net_profit ?? mockNetProfit;
   const hourlyRate = summary?.hourly_rate ?? mockHourlyRate;
 
+  // Persist active lesson changes to localStorage
+  useEffect(() => {
+    saveActiveLessonToStorage(activeLesson);
+  }, [activeLesson]);
+
   const handleAddStudent = () => {
     if (!canAdd) {
       setUpgradeOpen(true);
@@ -113,7 +144,7 @@ const Index = () => {
     }
   };
 
-  const handleStartLesson = (index: number) => {
+  const handleStartLesson = async (index: number) => {
     if (activeLesson) {
       toast({
         title: "Aula em andamento",
@@ -125,22 +156,37 @@ const Index = () => {
 
     triggerHaptic(25);
     const lesson = nextLessons[index];
-    setActiveLesson({
+
+    // Update lesson status in DB
+    try {
+      await supabase
+        .from("lessons")
+        .update({ status: "em_andamento" })
+        .eq("id", lesson.id);
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+    }
+
+    const activeLessonData: ActiveLessonData = {
       id: lesson.id,
       studentId: lesson.studentId ?? undefined,
       studentName: lesson.student,
       startTime: lesson.time,
-      endTime: (() => {
+      endTime: lesson.endTime || (() => {
         const [h, m] = lesson.time.split(":").map(Number);
-        const endH = h + 1;
-        return `${endH.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        return `${(h + 1).toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
       })(),
       meetingLocation: lesson.location,
       type: "pratica",
-      value: 120,
+      value: lesson.price || 120,
+      phone: lesson.phone || "",
       index,
-    });
+      startedAt: Date.now(),
+    };
 
+    setActiveLesson(activeLessonData);
+    queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
+    queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
     toast({ title: "Aula iniciada!", description: `Aula com ${lesson.student}` });
   };
 
@@ -149,6 +195,7 @@ const Index = () => {
 
     triggerHaptic(30);
 
+    // 1. Calculate skill scores
     const skillScores: Record<string, { checked: number; total: number }> = {};
     SKILL_NAMES.forEach((name) => {
       skillScores[name] = { checked: 0, total: 0 };
@@ -174,6 +221,7 @@ const Index = () => {
 
     const durationMinutes = Math.ceil(elapsedSeconds / 60);
 
+    // 2. Save evaluations to DB (Pedagogical Bridge)
     if (activeLesson.studentId && user?.id) {
       try {
         const scores: Record<string, number> = {};
@@ -181,6 +229,7 @@ const Index = () => {
         await saveEvaluations(activeLesson.id, activeLesson.studentId, user.id, scores);
         queryClient.invalidateQueries({ queryKey: ["student-skills", activeLesson.studentId] });
         queryClient.invalidateQueries({ queryKey: ["student-lessons", activeLesson.studentId] });
+        queryClient.invalidateQueries({ queryKey: ["student-growth", activeLesson.studentId] });
       } catch (err) {
         console.error("Erro ao salvar avaliações:", err);
         toast({
@@ -191,15 +240,34 @@ const Index = () => {
       }
     }
 
+    // 3. Update lesson status to finished + paid (Revenue Bridge)
+    try {
+      await supabase
+        .from("lessons")
+        .update({ status: "concluida", payment_status: "paid" })
+        .eq("id", activeLesson.id);
+    } catch (err) {
+      console.error("Erro ao finalizar aula:", err);
+    }
+
+    // 4. Invalidate all related caches
+    queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
+    queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
+    queryClient.invalidateQueries({ queryKey: [FINANCE_QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: [EXPENSES_QUERY_KEY] });
+
+    // 5. Generate report (WhatsApp Bridge)
+    const instructorName = profile?.full_name || "Instrutor";
     setReportData({
       studentName: activeLesson.studentName,
-      instructorName: "Instrutor",
+      instructorName,
       date: new Date().toLocaleDateString("pt-BR"),
       duration: durationMinutes,
       skills,
       averageProgress,
       evolution: Math.round(averageProgress * 0.1),
       lessonValue: activeLesson.value,
+      phone: activeLesson.phone,
     });
 
     setActiveLesson(null);
@@ -221,6 +289,7 @@ const Index = () => {
         lesson={activeLesson}
         onFinish={handleFinishLesson}
         onCancel={() => setActiveLesson(null)}
+        startedAt={activeLesson.startedAt}
       />
     );
   }

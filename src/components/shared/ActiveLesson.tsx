@@ -40,13 +40,15 @@ interface ActiveLessonProps {
   };
   onFinish: (checkedItems: string[], elapsedSeconds: number) => void;
   onCancel: () => void;
+  startedAt?: number;
 }
 
-export function ActiveLesson({ lesson, onFinish, onCancel }: ActiveLessonProps) {
+export function ActiveLesson({ lesson, onFinish, onCancel, startedAt }: ActiveLessonProps) {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const resolvedStart = startedAt ?? Date.now();
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => Math.floor((Date.now() - resolvedStart) / 1000));
   const [confirmFinish, setConfirmFinish] = useState(false);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef(resolvedStart);
   const { toast } = useToast();
 
   // Timer
