@@ -43,15 +43,18 @@ export interface NextLesson {
   student: string;
   studentId: string | null;
   time: string;
+  endTime: string;
   location: string;
   address: string;
+  price: number;
+  phone: string;
 }
 
 async function fetchNextLessons(): Promise<NextLesson[]> {
   const today = new Date().toISOString().split("T")[0];
   const { data, error } = await supabase
     .from("lessons")
-    .select("id, student_name, student_id, start_time, meeting_location, meeting_address, date")
+    .select("id, student_name, student_id, start_time, end_time, meeting_location, meeting_address, date, price")
     .gte("date", today)
     .eq("status", "agendada")
     .order("date", { ascending: true })
@@ -60,13 +63,31 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((l) => ({
+  const lessons = data ?? [];
+
+  // Fetch student phones for linked students
+  const studentIds = [...new Set(lessons.map((l) => l.student_id).filter(Boolean))] as string[];
+  let phonesMap: Record<string, string> = {};
+  if (studentIds.length > 0) {
+    const { data: students } = await supabase
+      .from("students")
+      .select("id, whatsapp")
+      .in("id", studentIds);
+    (students ?? []).forEach((s) => {
+      phonesMap[s.id] = s.whatsapp ?? "";
+    });
+  }
+
+  return lessons.map((l) => ({
     id: l.id,
     student: l.student_name,
     studentId: l.student_id,
     time: l.start_time?.substring(0, 5) ?? "",
+    endTime: l.end_time?.substring(0, 5) ?? "",
     location: l.meeting_location,
     address: l.meeting_address,
+    price: Number(l.price ?? 0),
+    phone: l.student_id ? (phonesMap[l.student_id] ?? "") : "",
   }));
 }
 
