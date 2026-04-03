@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Lesson } from "@/types/solodrive";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StudentCombobox } from "@/components/shared/StudentCombobox";
 import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
+import { TimePicker } from "@/components/shared/TimePicker";
 
 interface AddLessonDialogProps {
   open: boolean;
