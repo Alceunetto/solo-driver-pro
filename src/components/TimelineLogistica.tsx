@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Lesson } from "@/types/solodrive";
 import { LessonCard } from "./shared/LessonCard";
 import { DisplacementGapCard } from "./shared/DisplacementGapCard";
 import { AddLessonDialog } from "./shared/AddLessonDialog";
+import { CalendarStrip } from "./shared/CalendarStrip";
 import { calculateGaps, openInWaze, openInGoogleMaps } from "@/lib/schedule";
 import { Plus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,16 +14,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
-function getTodayIsoDate() {
-  return new Date().toISOString().split("T")[0];
+function toIsoDate(date: Date) {
+  return format(date, "yyyy-MM-dd");
 }
 
-async function fetchTimelineLessons(): Promise<Lesson[]> {
-  const today = getTodayIsoDate();
+async function fetchTimelineLessons(date: string): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from("lessons")
     .select("id, student_name, start_time, end_time, meeting_location, end_location, meeting_address, type, status, price")
-    .eq("date", today)
+    .eq("date", date)
     .in("status", ["agendada", "em_andamento"])
     .order("start_time", { ascending: true });
 
@@ -41,26 +43,42 @@ async function fetchTimelineLessons(): Promise<Lesson[]> {
 }
 
 export function TimelineLogistica() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
 
+  const isoDate = toIsoDate(selectedDate);
+
   const { data: lessons = [] } = useQuery({
-    queryKey: ["timeline-lessons"],
-    queryFn: fetchTimelineLessons,
+    queryKey: ["timeline-lessons", isoDate],
+    queryFn: () => fetchTimelineLessons(isoDate),
   });
 
   const createLesson = useMutation({
-    mutationFn: async (lesson: Omit<Lesson, "id"> & { studentId?: string }) => {
+    mutationFn: async (lesson: Omit<Lesson, "id"> & { studentId?: string; date?: string; repeatWeekly?: boolean }) => {
       if (!user?.id) throw new Error("Usuário não autenticado.");
 
-      const { error } = await supabase.from("lessons").insert({
+      const lessonDate = lesson.date || isoDate;
+      const dates = [lessonDate];
+
+      // If repeat weekly, create for 4 weeks
+      if (lesson.repeatWeekly) {
+        const base = new Date(lessonDate + "T00:00:00");
+        for (let w = 1; w <= 3; w++) {
+          const next = new Date(base);
+          next.setDate(next.getDate() + 7 * w);
+          dates.push(format(next, "yyyy-MM-dd"));
+        }
+      }
+
+      const rows = dates.map((d) => ({
         instructor_id: user.id,
         student_id: lesson.studentId ?? null,
         student_name: lesson.studentName,
-        date: getTodayIsoDate(),
+        date: d,
         start_time: lesson.startTime,
         end_time: lesson.endTime,
         meeting_location: lesson.meetingLocation,
@@ -69,22 +87,24 @@ export function TimelineLogistica() {
         type: lesson.type,
         status: lesson.status,
         price: lesson.value,
-      });
+      }));
 
+      const { error } = await supabase.from("lessons").insert(rows);
       if (error) throw error;
+
+      return dates.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
       queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
       setDialogOpen(false);
-      toast({ title: "Aula criada", description: "A aula já está em Próximas Aulas." });
+      toast({
+        title: count > 1 ? `${count} aulas criadas` : "Aula criada",
+        description: count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
+      });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao criar aula",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao criar aula", description: error.message, variant: "destructive" });
     },
   });
 
@@ -97,43 +117,46 @@ export function TimelineLogistica() {
   const totalValue = sorted.reduce((sum, l) => sum + l.value, 0);
   const hasConflicts = gaps.some((g) => g.hasConflict);
 
+  const formattedHeader = format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR });
+  // Capitalize first letter
+  const capitalizedHeader = formattedHeader.charAt(0).toUpperCase() + formattedHeader.slice(1);
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Calendar className="w-6 h-6 text-primary" />
+      {/* Date Header */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Timeline do Dia</h2>
-            <p className="text-sm text-muted-foreground">
-              {sorted.length} aulas · R$ {totalValue.toFixed(2)} previstos
+            <h2 className="text-lg font-bold text-foreground">{capitalizedHeader}</h2>
+            <p className="text-xs text-muted-foreground">
+              {sorted.length} aulas · R$ {totalValue.toFixed(2)}
               {hasConflicts && (
-                <span className="text-destructive ml-2 font-medium">· ⚠️ Conflitos detectados</span>
+                <span className="text-destructive ml-1 font-medium">· ⚠️ Conflitos</span>
               )}
             </p>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm">
-            <label className="text-muted-foreground">Gap:</label>
+          <div className="flex items-center gap-2">
             <select
               value={gapMinutes}
               onChange={(e) => setGapMinutes(Number(e.target.value))}
-              className="bg-secondary text-secondary-foreground rounded-lg px-2 py-1 text-sm border border-border"
+              className="bg-secondary text-secondary-foreground rounded-lg px-2 py-1 text-xs border border-border"
             >
-              <option value={10}>10 min</option>
-              <option value={15}>15 min</option>
-              <option value={20}>20 min</option>
-              <option value={30}>30 min</option>
+              <option value={10}>10m</option>
+              <option value={15}>15m</option>
+              <option value={20}>20m</option>
+              <option value={30}>30m</option>
             </select>
-          </div>
 
-          <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5">
-            <Plus className="w-4 h-4" />
-            Nova Aula
-          </Button>
+            <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5 h-8">
+              <Plus className="w-3.5 h-3.5" />
+              Nova
+            </Button>
+          </div>
         </div>
+
+        {/* Calendar Strip */}
+        <CalendarStrip selected={selectedDate} onChange={setSelectedDate} />
       </div>
 
       {/* Timeline */}
@@ -141,7 +164,7 @@ export function TimelineLogistica() {
         {sorted.length === 0 && (
           <div className="glass-card p-12 text-center">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Nenhuma aula agendada. Adicione sua primeira aula!</p>
+            <p className="text-muted-foreground">Nenhuma aula neste dia. Adicione uma aula!</p>
           </div>
         )}
 
@@ -149,11 +172,7 @@ export function TimelineLogistica() {
           const gap = gaps.find((g) => g.fromLesson.id === lesson.id);
           return (
             <div key={lesson.id}>
-              <LessonCard
-                lesson={lesson}
-                onOpenWaze={openInWaze}
-                onOpenMaps={openInGoogleMaps}
-              />
+              <LessonCard lesson={lesson} onOpenWaze={openInWaze} onOpenMaps={openInGoogleMaps} />
               {gap && <DisplacementGapCard gap={gap} />}
             </div>
           );
@@ -164,6 +183,7 @@ export function TimelineLogistica() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onAdd={(lesson) => createLesson.mutate(lesson)}
+        defaultDate={selectedDate}
       />
     </div>
   );
