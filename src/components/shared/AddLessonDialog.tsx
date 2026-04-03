@@ -65,8 +65,8 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
     setForm({
       studentId: "",
       studentName: "",
-      startTime: "",
-      endTime: "",
+      startTime: "08:00",
+      endTime: "08:45",
       meetingLocation: "",
       endLocation: "",
       meetingAddress: "",
