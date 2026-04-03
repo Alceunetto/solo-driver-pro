@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Lesson } from "@/types/solodrive";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StudentCombobox } from "@/components/shared/StudentCombobox";
 import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
+import { TimePicker } from "@/components/shared/TimePicker";
 
 interface AddLessonDialogProps {
   open: boolean;
@@ -23,14 +24,28 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
   const [form, setForm] = useState({
     studentId: "",
     studentName: "",
-    startTime: "",
-    endTime: "",
+    startTime: "08:00",
+    endTime: "08:45",
     meetingLocation: "",
     endLocation: "",
     meetingAddress: "",
     type: "pratica" as Lesson["type"],
     value: "",
   });
+
+  const DEFAULT_DURATION = 50; // minutes
+
+  const calcEndTime = useCallback((start: string) => {
+    const [h, m] = start.split(":").map(Number);
+    const total = h * 60 + m + DEFAULT_DURATION;
+    const eH = Math.floor(total / 60) % 24;
+    const eM = total % 60;
+    // snap to nearest 15
+    const snapped = Math.round(eM / 15) * 15;
+    const finalM = snapped === 60 ? 0 : snapped;
+    const finalH = snapped === 60 ? eH + 1 : eH;
+    return `${String(finalH).padStart(2, "0")}:${String(finalM).padStart(2, "0")}`;
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +65,8 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
     setForm({
       studentId: "",
       studentName: "",
-      startTime: "",
-      endTime: "",
+      startTime: "08:00",
+      endTime: "08:45",
       meetingLocation: "",
       endLocation: "",
       meetingAddress: "",
@@ -86,36 +101,18 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Início</Label>
-                <Input
-                  type="text"
-                  value={form.startTime}
-                  onChange={(e) => {
-                    let v = e.target.value.replace(/[^\d:]/g, "");
-                    if (v.length === 2 && !v.includes(":") && form.startTime.length < 3) v += ":";
-                    if (v.length <= 5) update("startTime", v);
-                  }}
-                  placeholder="09:00"
-                  maxLength={5}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Término</Label>
-                <Input
-                  type="text"
-                  value={form.endTime}
-                  onChange={(e) => {
-                    let v = e.target.value.replace(/[^\d:]/g, "");
-                    if (v.length === 2 && !v.includes(":") && form.endTime.length < 3) v += ":";
-                    if (v.length <= 5) update("endTime", v);
-                  }}
-                  placeholder="10:00"
-                  maxLength={5}
-                  required
-                />
-              </div>
+              <TimePicker
+                label="Início"
+                value={form.startTime}
+                onChange={(v) => {
+                  setForm((prev) => ({ ...prev, startTime: v, endTime: calcEndTime(v) }));
+                }}
+              />
+              <TimePicker
+                label="Término"
+                value={form.endTime}
+                onChange={(v) => update("endTime", v)}
+              />
             </div>
 
             <div className="space-y-2">
