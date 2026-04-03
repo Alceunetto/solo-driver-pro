@@ -101,36 +101,18 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Início</Label>
-                <Input
-                  type="text"
-                  value={form.startTime}
-                  onChange={(e) => {
-                    let v = e.target.value.replace(/[^\d:]/g, "");
-                    if (v.length === 2 && !v.includes(":") && form.startTime.length < 3) v += ":";
-                    if (v.length <= 5) update("startTime", v);
-                  }}
-                  placeholder="09:00"
-                  maxLength={5}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Término</Label>
-                <Input
-                  type="text"
-                  value={form.endTime}
-                  onChange={(e) => {
-                    let v = e.target.value.replace(/[^\d:]/g, "");
-                    if (v.length === 2 && !v.includes(":") && form.endTime.length < 3) v += ":";
-                    if (v.length <= 5) update("endTime", v);
-                  }}
-                  placeholder="10:00"
-                  maxLength={5}
-                  required
-                />
-              </div>
+              <TimePicker
+                label="Início"
+                value={form.startTime}
+                onChange={(v) => {
+                  setForm((prev) => ({ ...prev, startTime: v, endTime: calcEndTime(v) }));
+                }}
+              />
+              <TimePicker
+                label="Término"
+                value={form.endTime}
+                onChange={(v) => update("endTime", v)}
+              />
             </div>
 
             <div className="space-y-2">
