@@ -24,14 +24,28 @@ export function AddLessonDialog({ open, onOpenChange, onAdd }: AddLessonDialogPr
   const [form, setForm] = useState({
     studentId: "",
     studentName: "",
-    startTime: "",
-    endTime: "",
+    startTime: "08:00",
+    endTime: "08:45",
     meetingLocation: "",
     endLocation: "",
     meetingAddress: "",
     type: "pratica" as Lesson["type"],
     value: "",
   });
+
+  const DEFAULT_DURATION = 50; // minutes
+
+  const calcEndTime = useCallback((start: string) => {
+    const [h, m] = start.split(":").map(Number);
+    const total = h * 60 + m + DEFAULT_DURATION;
+    const eH = Math.floor(total / 60) % 24;
+    const eM = total % 60;
+    // snap to nearest 15
+    const snapped = Math.round(eM / 15) * 15;
+    const finalM = snapped === 60 ? 0 : snapped;
+    const finalH = snapped === 60 ? eH + 1 : eH;
+    return `${String(finalH).padStart(2, "0")}:${String(finalM).padStart(2, "0")}`;
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
