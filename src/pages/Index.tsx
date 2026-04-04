@@ -512,20 +512,13 @@ const Index = () => {
                   let gapMinutes: number | null = null;
                   let hasConflict = false;
 
-                  if (next) {
-                    // Check if same date by comparing the fetched dates
-                    const sameDay = lesson.time && next.time; // lessons are ordered by date+time
-                    if (sameDay) {
-                      const endMins = timeToMinutes(lesson.endTime || (() => {
-                        const [h, m] = lesson.time.split(":").map(Number);
-                        return `${(h).toString().padStart(2, "0")}:${(m + 50).toString().padStart(2, "0")}`;
-                      })());
-                      const nextStartMins = timeToMinutes(next.time);
-                      const diff = nextStartMins - endMins;
-                      if (diff >= 0 && diff <= 120) {
-                        gapMinutes = diff;
-                        hasConflict = diff < 15;
-                      }
+                  if (next && lesson.date === next.date) {
+                    const endMins = timeToMinutes(lesson.endTime || lesson.time);
+                    const nextStartMins = timeToMinutes(next.time);
+                    const diff = nextStartMins - endMins;
+                    if (diff >= 0 && diff <= 120) {
+                      gapMinutes = diff;
+                      hasConflict = diff < 15;
                     }
                   }
 
