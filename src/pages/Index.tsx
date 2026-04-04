@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
   Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award, LogOut,
-  UserPlus, CalendarPlus,
+  UserPlus, CalendarPlus, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { NextLessonCard } from "@/components/shared/NextLessonCard";
 import { StudentRadar } from "@/components/shared/StudentRadar";
@@ -22,6 +23,7 @@ import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
 import { FloatingActionButton, triggerHaptic } from "@/components/shared/FloatingActionButton";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { ShimmerSkeleton } from "@/components/shared/ShimmerSkeleton";
+import { AgendaDialog } from "@/components/shared/AgendaDialog";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance, FINANCE_QUERY_KEY, EXPENSES_QUERY_KEY } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 import { saveEvaluations } from "@/services/evaluationService";
 import { supabase } from "@/integrations/supabase/client";
+import { timeToMinutes } from "@/lib/schedule";
 
 const CHECKLIST_TO_SKILL: Record<string, string> = {
   cinto: "Controle de Embreagem",
