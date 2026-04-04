@@ -46,6 +46,8 @@ export function TimelineLogistica() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [newLessonId, setNewLessonId] = useState<string | null>(null);
+  const newLessonRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
