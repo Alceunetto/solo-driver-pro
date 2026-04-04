@@ -49,6 +49,7 @@ export interface NextLesson {
   address: string;
   price: number;
   phone: string;
+  status: string;
 }
 
 async function fetchNextLessons(): Promise<NextLesson[]> {
