@@ -59,7 +59,7 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
     .eq("status", "agendada")
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
-    .limit(5);
+    .limit(10);
 
   if (error) throw error;
 
