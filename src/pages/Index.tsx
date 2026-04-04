@@ -112,6 +112,7 @@ const Index = () => {
   const [activeLesson, setActiveLesson] = useState<ActiveLessonData | null>(() => loadActiveLessonFromStorage());
   const [reportData, setReportData] = useState<any>(null);
   const [newStudentOpen, setNewStudentOpen] = useState(false);
+  const [fabLessonDialogOpen, setFabLessonDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
@@ -305,6 +306,7 @@ const Index = () => {
       icon: CalendarPlus,
       label: "Nova Aula",
       onClick: () => {
+        setFabLessonDialogOpen(true);
         const el = document.getElementById("timeline-section");
         el?.scrollIntoView({ behavior: "smooth" });
       },
@@ -514,7 +516,7 @@ const Index = () => {
 
         {/* Timeline */}
         <div id="timeline-section">
-          <TimelineLogistica />
+          <TimelineLogistica externalDialogOpen={fabLessonDialogOpen} onExternalDialogClose={() => setFabLessonDialogOpen(false)} />
         </div>
       </main>
 

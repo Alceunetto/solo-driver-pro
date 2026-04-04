@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -42,10 +42,21 @@ async function fetchTimelineLessons(date: string): Promise<Lesson[]> {
   }));
 }
 
-export function TimelineLogistica() {
+interface TimelineLogisticaProps {
+  externalDialogOpen?: boolean;
+  onExternalDialogClose?: () => void;
+}
+
+export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }: TimelineLogisticaProps = {}) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (externalDialogOpen) {
+      setDialogOpen(true);
+    }
+  }, [externalDialogOpen]);
   const [newLessonId, setNewLessonId] = useState<string | null>(null);
   const newLessonRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -197,7 +208,10 @@ export function TimelineLogistica() {
 
       <AddLessonDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open && onExternalDialogClose) onExternalDialogClose();
+        }}
         onAdd={(lesson) => createLesson.mutate(lesson)}
         defaultDate={selectedDate}
         isSubmitting={createLesson.isPending}
