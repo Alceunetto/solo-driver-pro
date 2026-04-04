@@ -116,6 +116,7 @@ const Index = () => {
   const [reportData, setReportData] = useState<any>(null);
   const [newStudentOpen, setNewStudentOpen] = useState(false);
   const [fabLessonDialogOpen, setFabLessonDialogOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
