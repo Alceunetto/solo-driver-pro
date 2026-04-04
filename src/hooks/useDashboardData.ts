@@ -55,9 +55,9 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
   const today = new Date().toISOString().split("T")[0];
   const { data, error } = await supabase
     .from("lessons")
-    .select("id, student_name, student_id, start_time, end_time, meeting_location, meeting_address, date, price")
+    .select("id, student_name, student_id, start_time, end_time, meeting_location, meeting_address, date, price, status")
     .gte("date", today)
-    .eq("status", "agendada")
+    .in("status", ["agendada", "em_andamento"])
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
     .limit(10);
