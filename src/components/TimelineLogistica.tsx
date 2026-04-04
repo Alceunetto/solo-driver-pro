@@ -91,10 +91,10 @@ export function TimelineLogistica() {
         price: lesson.value,
       }));
 
-      const { error } = await supabase.from("lessons").insert(rows);
+      const { data, error } = await supabase.from("lessons").insert(rows).select("id");
       if (error) throw error;
 
-      return dates.length;
+      return { count: dates.length, date: lessonDate, firstId: data?.[0]?.id ?? null };
     },
     onSuccess: (result) => {
       // Auto-navigate to the lesson date
