@@ -115,7 +115,7 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
       setNewLessonId(result.firstId);
       queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
       queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
-      // Keep dialog open so user can add more lessons
+      setDialogOpen(false);
       toast({
         title: result.count > 1 ? `${result.count} aulas criadas` : "Aula criada",
         description: result.count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
