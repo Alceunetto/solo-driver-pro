@@ -15,6 +15,7 @@ import { CostBreakdown } from "@/components/shared/CostBreakdown";
 import { WeeklyChart } from "@/components/shared/WeeklyChart";
 import { DashboardSkeleton } from "@/components/shared/DashboardSkeleton";
 import { TimelineLogistica } from "@/components/TimelineLogistica";
+import { WeeklyAgenda } from "@/components/shared/WeeklyAgenda";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { ActiveLesson } from "@/components/shared/ActiveLesson";
 import { PerformanceReport } from "@/components/shared/PerformanceReport";
@@ -512,7 +513,10 @@ const Index = () => {
           onUpgrade={() => setUpgradeOpen(true)}
         />
 
-        {/* Timeline */}
+        {/* Weekly Agenda */}
+        <WeeklyAgenda />
+
+        {/* Daily Timeline */}
         <div id="timeline-section">
           <TimelineLogistica />
         </div>
