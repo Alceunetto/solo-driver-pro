@@ -7,6 +7,7 @@ interface LessonCardProps {
   lesson: Lesson;
   onOpenWaze: (address: string) => void;
   onOpenMaps: (address: string) => void;
+  isNew?: boolean;
 }
 
 const statusColors: Record<Lesson["status"], string> = {
@@ -23,9 +24,9 @@ const typeColors: Record<Lesson["type"], string> = {
   avaliacao: "bg-destructive/10 text-destructive",
 };
 
-export function LessonCard({ lesson, onOpenWaze, onOpenMaps }: LessonCardProps) {
+export function LessonCard({ lesson, onOpenWaze, onOpenMaps, isNew }: LessonCardProps) {
   return (
-    <div className="glass-card p-4 transition-all hover:shadow-xl hover:border-primary/30 group">
+    <div className={`glass-card p-4 transition-all hover:shadow-xl hover:border-primary/30 group ${isNew ? "animate-pulse ring-2 ring-primary/50 ring-offset-2 ring-offset-background" : ""}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 text-lg font-bold text-foreground">

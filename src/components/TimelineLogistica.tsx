@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -46,6 +46,8 @@ export function TimelineLogistica() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [newLessonId, setNewLessonId] = useState<string | null>(null);
+  const newLessonRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -89,19 +91,26 @@ export function TimelineLogistica() {
         price: lesson.value,
       }));
 
-      const { error } = await supabase.from("lessons").insert(rows);
+      const { data, error } = await supabase.from("lessons").insert(rows).select("id");
       if (error) throw error;
 
-      return dates.length;
+      return { count: dates.length, date: lessonDate, firstId: data?.[0]?.id ?? null };
     },
-    onSuccess: (count) => {
+    onSuccess: (result) => {
+      // Auto-navigate to the lesson date
+      if (result.date) {
+        setSelectedDate(new Date(result.date + "T00:00:00"));
+      }
+      setNewLessonId(result.firstId);
       queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
       queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
       setDialogOpen(false);
       toast({
-        title: count > 1 ? `${count} aulas criadas` : "Aula criada",
-        description: count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
+        title: result.count > 1 ? `${result.count} aulas criadas` : "Aula criada",
+        description: result.count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
       });
+      // Clear highlight after 3s
+      setTimeout(() => setNewLessonId(null), 3000);
     },
     onError: (error: Error) => {
       toast({ title: "Erro ao criar aula", description: error.message, variant: "destructive" });
@@ -114,11 +123,17 @@ export function TimelineLogistica() {
   );
   const gaps = useMemo(() => calculateGaps(sorted, gapMinutes), [sorted, gapMinutes]);
 
+  // Scroll to new lesson when it appears
+  useEffect(() => {
+    if (newLessonId && newLessonRef.current) {
+      newLessonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [newLessonId, sorted]);
+
   const totalValue = sorted.reduce((sum, l) => sum + l.value, 0);
   const hasConflicts = gaps.some((g) => g.hasConflict);
 
   const formattedHeader = format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR });
-  // Capitalize first letter
   const capitalizedHeader = formattedHeader.charAt(0).toUpperCase() + formattedHeader.slice(1);
 
   return (
@@ -170,9 +185,10 @@ export function TimelineLogistica() {
 
         {sorted.map((lesson) => {
           const gap = gaps.find((g) => g.fromLesson.id === lesson.id);
+          const isNew = lesson.id === newLessonId;
           return (
-            <div key={lesson.id}>
-              <LessonCard lesson={lesson} onOpenWaze={openInWaze} onOpenMaps={openInGoogleMaps} />
+            <div key={lesson.id} ref={isNew ? newLessonRef : undefined}>
+              <LessonCard lesson={lesson} onOpenWaze={openInWaze} onOpenMaps={openInGoogleMaps} isNew={isNew} />
               {gap && <DisplacementGapCard gap={gap} />}
             </div>
           );
