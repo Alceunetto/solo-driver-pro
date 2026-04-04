@@ -477,7 +477,7 @@ const Index = () => {
         {/* Weekly Chart */}
         <WeeklyChart data={weeklyData} visible={showFinancials} />
 
-        {/* Next Lessons */}
+        {/* Next Lessons with Displacement Gaps */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -485,24 +485,80 @@ const Index = () => {
         >
           <Card className="glass-card border-0">
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1.5 rounded-xl bg-primary/10">
-                  <Clock className="w-4 h-4 text-primary" />
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-primary/10">
+                    <Clock className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground">Próximas Aulas</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">Próximas Aulas</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-primary gap-1"
+                  onClick={() => setAgendaOpen(true)}
+                >
+                  Ver Agenda <ChevronRight className="w-3 h-3" />
+                </Button>
               </div>
               {nextLessons.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Nenhuma aula agendada. Use o botão + para criar uma.
                 </p>
               ) : (
-                nextLessons.map((lesson, i) => (
-                  <NextLessonCard
-                    key={i}
-                    {...lesson}
-                    onStart={() => handleStartLesson(i)}
-                  />
-                ))
+                nextLessons.slice(0, Math.max(3, nextLessons.length)).map((lesson, i, arr) => {
+                  // Calculate displacement gap to next lesson on same day
+                  const next = arr[i + 1];
+                  let gapMinutes: number | null = null;
+                  let hasConflict = false;
+
+                  if (next) {
+                    // Check if same date by comparing the fetched dates
+                    const sameDay = lesson.time && next.time; // lessons are ordered by date+time
+                    if (sameDay) {
+                      const endMins = timeToMinutes(lesson.endTime || (() => {
+                        const [h, m] = lesson.time.split(":").map(Number);
+                        return `${(h).toString().padStart(2, "0")}:${(m + 50).toString().padStart(2, "0")}`;
+                      })());
+                      const nextStartMins = timeToMinutes(next.time);
+                      const diff = nextStartMins - endMins;
+                      if (diff >= 0 && diff <= 120) {
+                        gapMinutes = diff;
+                        hasConflict = diff < 15;
+                      }
+                    }
+                  }
+
+                  return (
+                    <div key={lesson.id}>
+                      <NextLessonCard
+                        {...lesson}
+                        onStart={() => handleStartLesson(i)}
+                      />
+                      {gapMinutes !== null && (
+                        <div className="flex items-center justify-center py-1.5">
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                            hasConflict
+                              ? "bg-destructive/10 border-destructive/30 text-destructive"
+                              : "bg-accent/10 border-accent/30 text-muted-foreground"
+                          }`}>
+                            {hasConflict ? (
+                              <>
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>⚠️ Intervalo insuficiente ({gapMinutes}min)</span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-3 h-3" />
+                                <span>Deslocamento: ~{gapMinutes}min</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>
