@@ -44,6 +44,7 @@ export interface NextLesson {
   studentId: string | null;
   time: string;
   endTime: string;
+  date: string;
   location: string;
   address: string;
   price: number;
