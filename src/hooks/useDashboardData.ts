@@ -49,15 +49,16 @@ export interface NextLesson {
   address: string;
   price: number;
   phone: string;
+  status: string;
 }
 
 async function fetchNextLessons(): Promise<NextLesson[]> {
   const today = new Date().toISOString().split("T")[0];
   const { data, error } = await supabase
     .from("lessons")
-    .select("id, student_name, student_id, start_time, end_time, meeting_location, meeting_address, date, price")
+    .select("id, student_name, student_id, start_time, end_time, meeting_location, meeting_address, date, price, status")
     .gte("date", today)
-    .eq("status", "agendada")
+    .in("status", ["agendada", "em_andamento"])
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
     .limit(10);
@@ -90,6 +91,7 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
     address: l.meeting_address,
     price: Number(l.price ?? 0),
     phone: l.student_id ? (phonesMap[l.student_id] ?? "") : "",
+    status: l.status ?? "agendada",
   }));
 }
 

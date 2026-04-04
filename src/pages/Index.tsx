@@ -525,7 +525,14 @@ const Index = () => {
                   return (
                     <div key={lesson.id}>
                       <NextLessonCard
-                        {...lesson}
+                        student={lesson.student}
+                        time={lesson.time}
+                        endTime={lesson.endTime}
+                        date={lesson.date}
+                        location={lesson.location}
+                        address={lesson.address}
+                        price={lesson.price}
+                        status={lesson.status}
                         onStart={() => handleStartLesson(i)}
                       />
                       {gapMinutes !== null && (
