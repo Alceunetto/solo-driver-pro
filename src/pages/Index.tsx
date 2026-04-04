@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Car, Sun, Moon, Eye, EyeOff, TrendingUp, Fuel, DollarSign,
   Clock, ArrowUpRight, ArrowDownRight, AlertTriangle, Award, LogOut,
-  UserPlus, CalendarPlus,
+  UserPlus, CalendarPlus, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { NextLessonCard } from "@/components/shared/NextLessonCard";
 import { StudentRadar } from "@/components/shared/StudentRadar";
@@ -22,6 +23,7 @@ import { NewStudentDialog } from "@/components/shared/NewStudentDialog";
 import { FloatingActionButton, triggerHaptic } from "@/components/shared/FloatingActionButton";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { ShimmerSkeleton } from "@/components/shared/ShimmerSkeleton";
+import { AgendaDialog } from "@/components/shared/AgendaDialog";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useFinance, FINANCE_QUERY_KEY, EXPENSES_QUERY_KEY } from "@/hooks/useFinance";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/types/solodrive";
 import { saveEvaluations } from "@/services/evaluationService";
 import { supabase } from "@/integrations/supabase/client";
+import { timeToMinutes } from "@/lib/schedule";
 
 const CHECKLIST_TO_SKILL: Record<string, string> = {
   cinto: "Controle de Embreagem",
@@ -113,6 +116,7 @@ const Index = () => {
   const [reportData, setReportData] = useState<any>(null);
   const [newStudentOpen, setNewStudentOpen] = useState(false);
   const [fabLessonDialogOpen, setFabLessonDialogOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
   const { toast } = useToast();
 
   const userPlan: SubscriptionPlan = "free";
@@ -473,7 +477,7 @@ const Index = () => {
         {/* Weekly Chart */}
         <WeeklyChart data={weeklyData} visible={showFinancials} />
 
-        {/* Next Lessons */}
+        {/* Next Lessons with Displacement Gaps */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -481,24 +485,73 @@ const Index = () => {
         >
           <Card className="glass-card border-0">
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1.5 rounded-xl bg-primary/10">
-                  <Clock className="w-4 h-4 text-primary" />
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-primary/10">
+                    <Clock className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground">Próximas Aulas</span>
                 </div>
-                <span className="text-sm font-bold text-foreground">Próximas Aulas</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-primary gap-1"
+                  onClick={() => setAgendaOpen(true)}
+                >
+                  Ver Agenda <ChevronRight className="w-3 h-3" />
+                </Button>
               </div>
               {nextLessons.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Nenhuma aula agendada. Use o botão + para criar uma.
                 </p>
               ) : (
-                nextLessons.map((lesson, i) => (
-                  <NextLessonCard
-                    key={i}
-                    {...lesson}
-                    onStart={() => handleStartLesson(i)}
-                  />
-                ))
+                nextLessons.slice(0, Math.max(3, nextLessons.length)).map((lesson, i, arr) => {
+                  // Calculate displacement gap to next lesson on same day
+                  const next = arr[i + 1];
+                  let gapMinutes: number | null = null;
+                  let hasConflict = false;
+
+                  if (next && lesson.date === next.date) {
+                    const endMins = timeToMinutes(lesson.endTime || lesson.time);
+                    const nextStartMins = timeToMinutes(next.time);
+                    const diff = nextStartMins - endMins;
+                    if (diff >= 0 && diff <= 120) {
+                      gapMinutes = diff;
+                      hasConflict = diff < 15;
+                    }
+                  }
+
+                  return (
+                    <div key={lesson.id}>
+                      <NextLessonCard
+                        {...lesson}
+                        onStart={() => handleStartLesson(i)}
+                      />
+                      {gapMinutes !== null && (
+                        <div className="flex items-center justify-center py-1.5">
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                            hasConflict
+                              ? "bg-destructive/10 border-destructive/30 text-destructive"
+                              : "bg-accent/10 border-accent/30 text-muted-foreground"
+                          }`}>
+                            {hasConflict ? (
+                              <>
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>⚠️ Intervalo insuficiente ({gapMinutes}min)</span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-3 h-3" />
+                                <span>Deslocamento: ~{gapMinutes}min</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>
@@ -525,6 +578,7 @@ const Index = () => {
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       <NewStudentDialog open={newStudentOpen} onOpenChange={setNewStudentOpen} />
+      <AgendaDialog open={agendaOpen} onOpenChange={setAgendaOpen} />
 
       <PerformanceReport
         data={reportData ?? {

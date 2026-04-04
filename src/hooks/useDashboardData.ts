@@ -44,6 +44,7 @@ export interface NextLesson {
   studentId: string | null;
   time: string;
   endTime: string;
+  date: string;
   location: string;
   address: string;
   price: number;
@@ -59,7 +60,7 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
     .eq("status", "agendada")
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
-    .limit(5);
+    .limit(10);
 
   if (error) throw error;
 
@@ -84,6 +85,7 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
     studentId: l.student_id,
     time: l.start_time?.substring(0, 5) ?? "",
     endTime: l.end_time?.substring(0, 5) ?? "",
+    date: l.date,
     location: l.meeting_location,
     address: l.meeting_address,
     price: Number(l.price ?? 0),
