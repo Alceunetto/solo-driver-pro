@@ -42,10 +42,21 @@ async function fetchTimelineLessons(date: string): Promise<Lesson[]> {
   }));
 }
 
-export function TimelineLogistica() {
+interface TimelineLogisticaProps {
+  externalDialogOpen?: boolean;
+  onExternalDialogClose?: () => void;
+}
+
+export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }: TimelineLogisticaProps = {}) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (externalDialogOpen) {
+      setDialogOpen(true);
+    }
+  }, [externalDialogOpen]);
   const [newLessonId, setNewLessonId] = useState<string | null>(null);
   const newLessonRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
