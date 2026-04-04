@@ -96,14 +96,21 @@ export function TimelineLogistica() {
 
       return dates.length;
     },
-    onSuccess: (count) => {
+    onSuccess: (result) => {
+      // Auto-navigate to the lesson date
+      if (result.date) {
+        setSelectedDate(new Date(result.date + "T00:00:00"));
+      }
+      setNewLessonId(result.firstId);
       queryClient.invalidateQueries({ queryKey: ["timeline-lessons"] });
       queryClient.invalidateQueries({ queryKey: ["next-lessons"] });
       setDialogOpen(false);
       toast({
-        title: count > 1 ? `${count} aulas criadas` : "Aula criada",
-        description: count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
+        title: result.count > 1 ? `${result.count} aulas criadas` : "Aula criada",
+        description: result.count > 1 ? "Aulas recorrentes adicionadas por 4 semanas." : "A aula já está na timeline.",
       });
+      // Clear highlight after 3s
+      setTimeout(() => setNewLessonId(null), 3000);
     },
     onError: (error: Error) => {
       toast({ title: "Erro ao criar aula", description: error.message, variant: "destructive" });
