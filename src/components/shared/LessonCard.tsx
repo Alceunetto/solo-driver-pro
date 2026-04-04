@@ -7,6 +7,7 @@ interface LessonCardProps {
   lesson: Lesson;
   onOpenWaze: (address: string) => void;
   onOpenMaps: (address: string) => void;
+  isNew?: boolean;
 }
 
 const statusColors: Record<Lesson["status"], string> = {
