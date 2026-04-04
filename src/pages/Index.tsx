@@ -513,7 +513,10 @@ const Index = () => {
           onUpgrade={() => setUpgradeOpen(true)}
         />
 
-        {/* Timeline */}
+        {/* Weekly Agenda */}
+        <WeeklyAgenda />
+
+        {/* Daily Timeline */}
         <div id="timeline-section">
           <TimelineLogistica />
         </div>
