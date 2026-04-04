@@ -123,11 +123,17 @@ export function TimelineLogistica() {
   );
   const gaps = useMemo(() => calculateGaps(sorted, gapMinutes), [sorted, gapMinutes]);
 
+  // Scroll to new lesson when it appears
+  useEffect(() => {
+    if (newLessonId && newLessonRef.current) {
+      newLessonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [newLessonId, sorted]);
+
   const totalValue = sorted.reduce((sum, l) => sum + l.value, 0);
   const hasConflicts = gaps.some((g) => g.hasConflict);
 
   const formattedHeader = format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR });
-  // Capitalize first letter
   const capitalizedHeader = formattedHeader.charAt(0).toUpperCase() + formattedHeader.slice(1);
 
   return (
@@ -179,9 +185,10 @@ export function TimelineLogistica() {
 
         {sorted.map((lesson) => {
           const gap = gaps.find((g) => g.fromLesson.id === lesson.id);
+          const isNew = lesson.id === newLessonId;
           return (
-            <div key={lesson.id}>
-              <LessonCard lesson={lesson} onOpenWaze={openInWaze} onOpenMaps={openInGoogleMaps} />
+            <div key={lesson.id} ref={isNew ? newLessonRef : undefined}>
+              <LessonCard lesson={lesson} onOpenWaze={openInWaze} onOpenMaps={openInGoogleMaps} isNew={isNew} />
               {gap && <DisplacementGapCard gap={gap} />}
             </div>
           );
