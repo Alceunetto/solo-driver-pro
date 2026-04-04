@@ -305,6 +305,7 @@ const Index = () => {
       icon: CalendarPlus,
       label: "Nova Aula",
       onClick: () => {
+        setFabLessonDialogOpen(true);
         const el = document.getElementById("timeline-section");
         el?.scrollIntoView({ behavior: "smooth" });
       },

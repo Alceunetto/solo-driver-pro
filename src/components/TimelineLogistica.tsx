@@ -208,7 +208,10 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
 
       <AddLessonDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open && onExternalDialogClose) onExternalDialogClose();
+        }}
         onAdd={(lesson) => createLesson.mutate(lesson)}
         defaultDate={selectedDate}
         isSubmitting={createLesson.isPending}
