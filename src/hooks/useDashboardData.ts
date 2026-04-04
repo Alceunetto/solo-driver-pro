@@ -91,6 +91,7 @@ async function fetchNextLessons(): Promise<NextLesson[]> {
     address: l.meeting_address,
     price: Number(l.price ?? 0),
     phone: l.student_id ? (phonesMap[l.student_id] ?? "") : "",
+    status: l.status ?? "agendada",
   }));
 }
 
