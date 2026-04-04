@@ -585,6 +585,7 @@ const Index = () => {
 
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       <NewStudentDialog open={newStudentOpen} onOpenChange={setNewStudentOpen} />
+      <AgendaDialog open={agendaOpen} onOpenChange={setAgendaOpen} />
 
       <PerformanceReport
         data={reportData ?? {
