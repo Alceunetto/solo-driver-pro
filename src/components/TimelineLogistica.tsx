@@ -200,6 +200,7 @@ export function TimelineLogistica() {
         onOpenChange={setDialogOpen}
         onAdd={(lesson) => createLesson.mutate(lesson)}
         defaultDate={selectedDate}
+        isSubmitting={createLesson.isPending}
       />
     </div>
   );
