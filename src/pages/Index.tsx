@@ -516,7 +516,7 @@ const Index = () => {
 
         {/* Timeline */}
         <div id="timeline-section">
-          <TimelineLogistica />
+          <TimelineLogistica externalDialogOpen={fabLessonDialogOpen} onExternalDialogClose={() => setFabLessonDialogOpen(false)} />
         </div>
       </main>
 
