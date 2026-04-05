@@ -364,7 +364,7 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container py-5 space-y-6">
+      <main className="container px-4 py-5 space-y-6 max-w-4xl mx-auto">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {isFinanceLoading ? (
