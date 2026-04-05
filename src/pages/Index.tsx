@@ -414,7 +414,7 @@ const Index = () => {
                       </div>
                       <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Lucro Líquido</span>
                     </div>
-                    <p className={`text-xl sm:text-2xl font-extrabold ${profitColor} tracking-tight`}>
+                     <p className={`text-2xl sm:text-3xl font-black ${profitColor} tracking-tight`}>
                       {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
                     </p>
                     <div className="flex items-center gap-1">
