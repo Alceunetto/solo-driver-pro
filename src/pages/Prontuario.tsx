@@ -256,7 +256,7 @@ export default function Prontuario() {
         </div>
       </header>
 
-      <main className="container py-5 space-y-6">
+      <main className="container px-4 py-5 space-y-6 max-w-3xl mx-auto">
         {/* Profile Card */}
         <motion.div
           className="glass-card p-5 flex items-center gap-4"
