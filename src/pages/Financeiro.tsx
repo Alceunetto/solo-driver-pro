@@ -238,7 +238,7 @@ export default function Financeiro() {
                   <p className="text-xs text-muted-foreground">{tx.date} · {tx.category}</p>
                 </div>
               </div>
-              <p className={`text-sm font-bold ${tx.type === "entrada" ? "text-success" : "text-destructive"}`}>
+              <p className={`text-sm font-bold shrink-0 ${tx.type === "entrada" ? "text-success" : "text-destructive"}`}>
                 {tx.type === "entrada" ? "+" : "-"}R$ {tx.amount}
               </p>
             </motion.div>
