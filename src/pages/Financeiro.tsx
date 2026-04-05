@@ -98,7 +98,7 @@ export default function Financeiro() {
             </div>
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Saídas</span>
           </div>
-          <p className="text-2xl font-extrabold text-destructive tracking-tight">R$ {totalSaidas.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-destructive tracking-tight">R$ {totalSaidas.toLocaleString()}</p>
         </motion.div>
       </div>
 
