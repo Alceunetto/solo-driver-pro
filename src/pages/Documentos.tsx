@@ -129,7 +129,7 @@ export default function Documentos() {
               const cfg = statusConfig[doc.status];
               const StatusIcon = cfg.icon;
               return (
-                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 gap-2">
                   <div className="flex items-center gap-3">
                     <FileText className="w-4 h-4 text-muted-foreground" />
                     <div>
