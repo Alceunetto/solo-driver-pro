@@ -479,7 +479,7 @@ const Index = () => {
         <WeeklyChart data={weeklyData} visible={showFinancials} />
 
         {/* Weekly Goal */}
-        <WeeklyGoalCard completedLessons={summary?.lesson_count ?? weeklyData.reduce((s, w) => s + w.lessons, 0)} />
+        <WeeklyGoalCard completedLessons={summary?.lesson_count ?? 0} />
 
         {/* Next Lessons with Displacement Gaps */}
         <motion.div
