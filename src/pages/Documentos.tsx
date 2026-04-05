@@ -71,7 +71,7 @@ export default function Documentos() {
   };
 
   return (
-    <div className="container py-6 pb-24 space-y-6">
+    <div className="container px-4 py-6 pb-24 space-y-6 max-w-3xl mx-auto">
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
