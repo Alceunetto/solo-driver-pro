@@ -6,6 +6,7 @@ import { Lesson } from "@/types/solodrive";
 import { LessonCard } from "./shared/LessonCard";
 import { DisplacementGapCard } from "./shared/DisplacementGapCard";
 import { AddLessonDialog } from "./shared/AddLessonDialog";
+import { AgendaDialog } from "./shared/AgendaDialog";
 import { CalendarStrip } from "./shared/CalendarStrip";
 import { calculateGaps, openInWaze, openInGoogleMaps } from "@/lib/schedule";
 import { Plus, Calendar } from "lucide-react";
@@ -51,6 +52,7 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   useEffect(() => {
     if (externalDialogOpen) {
@@ -174,6 +176,10 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
               <option value={30}>30m</option>
             </select>
 
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAgendaOpen(true)}>
+              <Calendar className="w-4 h-4 text-primary" />
+            </Button>
+
             <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5 h-8">
               <Plus className="w-3.5 h-3.5" />
               Nova
@@ -216,6 +222,8 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
         defaultDate={selectedDate}
         isSubmitting={createLesson.isPending}
       />
+
+      <AgendaDialog open={agendaOpen} onOpenChange={setAgendaOpen} />
     </div>
   );
 }
