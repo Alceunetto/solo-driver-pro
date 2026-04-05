@@ -222,6 +222,8 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
         defaultDate={selectedDate}
         isSubmitting={createLesson.isPending}
       />
+
+      <AgendaDialog open={agendaOpen} onOpenChange={setAgendaOpen} />
     </div>
   );
 }
