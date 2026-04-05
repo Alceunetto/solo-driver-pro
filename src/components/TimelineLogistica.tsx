@@ -176,6 +176,10 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
               <option value={30}>30m</option>
             </select>
 
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAgendaOpen(true)}>
+              <Calendar className="w-4 h-4 text-primary" />
+            </Button>
+
             <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5 h-8">
               <Plus className="w-3.5 h-3.5" />
               Nova
