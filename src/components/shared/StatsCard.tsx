@@ -43,7 +43,7 @@ export function StatsCard({
             </div>
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{label}</span>
           </div>
-          <p className="text-2xl font-extrabold text-foreground tracking-tight">{value}</p>
+          <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">{value}</p>
           {footer && <div>{footer}</div>}
         </CardContent>
       </Card>

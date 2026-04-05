@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Play, Calendar } from "lucide-react";
+import { MapPin, Play, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { triggerHaptic } from "./FloatingActionButton";
@@ -32,6 +33,27 @@ export function NextLessonCard({ student, time, endTime, date, location, address
       ? "Hoje"
       : format(new Date(date + "T00:00:00"), "EEE, d MMM", { locale: ptBR }).replace(/^./, (c) => c.toUpperCase())
     : "";
+
+  // Countdown: minutes until lesson starts
+  const countdownText = useMemo(() => {
+    if (!date || !time) return null;
+    const now = new Date();
+    const [h, m] = time.split(":").map(Number);
+    const lessonDate = new Date(date + "T00:00:00");
+    lessonDate.setHours(h, m, 0, 0);
+    const diffMs = lessonDate.getTime() - now.getTime();
+    const diffMin = Math.round(diffMs / 60000);
+
+    if (diffMin < 0) return null; // already past
+    if (diffMin <= 0) return "Agora!";
+    if (diffMin <= 60) return `Começa em ${diffMin} min`;
+    if (diffMin <= 180) {
+      const hrs = Math.floor(diffMin / 60);
+      const mins = diffMin % 60;
+      return `Começa em ${hrs}h${mins > 0 ? `${mins}min` : ""}`;
+    }
+    return null;
+  }, [date, time]);
 
   return (
     <motion.div
@@ -68,11 +90,19 @@ export function NextLessonCard({ student, time, endTime, date, location, address
         )}
       </div>
 
+      {/* Countdown urgency */}
+      {countdownText && (
+        <div className="flex items-center gap-1.5 text-xs font-bold text-success animate-pulse">
+          <Clock className="w-3.5 h-3.5" />
+          {countdownText}
+        </div>
+      )}
+
       <Button
-        size="sm"
-        className={`w-full gap-2 text-sm font-semibold h-11 rounded-xl fab-shadow ${
+        size="lg"
+        className={`w-full gap-2 text-sm font-bold h-12 rounded-xl fab-shadow ${
           isInProgress
-            ? "bg-warning hover:bg-warning/90"
+            ? "bg-warning hover:bg-warning/90 text-warning-foreground"
             : "bg-primary hover:bg-primary/90"
         }`}
         onClick={() => {
@@ -80,7 +110,7 @@ export function NextLessonCard({ student, time, endTime, date, location, address
           onStart?.();
         }}
       >
-        <Play className="w-4 h-4" /> {isInProgress ? "Continuar Aula" : "Iniciar Aula"}
+        <Play className="w-5 h-5" /> {isInProgress ? "Continuar Aula" : "Iniciar Aula"}
       </Button>
     </motion.div>
   );
