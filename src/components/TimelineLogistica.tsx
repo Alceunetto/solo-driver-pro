@@ -52,6 +52,7 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [gapMinutes, setGapMinutes] = useState(15);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   useEffect(() => {
     if (externalDialogOpen) {
