@@ -6,6 +6,7 @@ import { Lesson } from "@/types/solodrive";
 import { LessonCard } from "./shared/LessonCard";
 import { DisplacementGapCard } from "./shared/DisplacementGapCard";
 import { AddLessonDialog } from "./shared/AddLessonDialog";
+import { AgendaDialog } from "./shared/AgendaDialog";
 import { CalendarStrip } from "./shared/CalendarStrip";
 import { calculateGaps, openInWaze, openInGoogleMaps } from "@/lib/schedule";
 import { Plus, Calendar } from "lucide-react";
