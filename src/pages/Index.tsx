@@ -445,17 +445,17 @@ const Index = () => {
 
               <StatsCard
                 icon={Fuel}
-                iconBgClass={kmToOil < 2000 ? "bg-warning/10" : "bg-muted"}
-                iconColorClass={kmToOil < 2000 ? "text-warning" : "text-muted-foreground"}
+                iconBgClass={kmToOil < 2000 ? "bg-warning/15" : "bg-muted"}
+                iconColorClass={kmToOil < 2000 ? "text-warning drop-shadow-[0_0_6px_hsl(var(--warning)/0.5)]" : "text-muted-foreground"}
                 label="Custo/Aula"
                 value={masked(`R$ ${costPerLesson.toFixed(1)}`)}
-                className={kmToOil < 2000 ? "border border-warning/30" : ""}
+                className={kmToOil < 2000 ? "border-2 border-warning/40 shadow-warning/10 shadow-lg" : ""}
                 index={3}
                 footer={
                   kmToOil < 2000 ? (
-                    <div className="flex items-center gap-1 text-[10px] text-warning font-semibold">
-                      <AlertTriangle className="w-3 h-3" />
-                      Troca de óleo em {kmToOil.toLocaleString("pt-BR")} km
+                    <div className="flex items-center gap-1 text-[11px] text-warning font-bold animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      ⚠️ Troca de óleo em {kmToOil.toLocaleString("pt-BR")} km
                     </div>
                   ) : undefined
                 }
