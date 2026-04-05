@@ -322,7 +322,7 @@ const Index = () => {
     <PageTransition className="min-h-screen bg-background transition-colors pb-24">
       {/* Header */}
       <header className="glass-header sticky top-0 z-50">
-        <div className="container flex items-center justify-between py-3">
+        <div className="container px-4 flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-2xl bg-primary/10 glow-primary">
               <Car className="w-6 h-6 text-primary" />
