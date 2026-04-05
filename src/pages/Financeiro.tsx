@@ -234,7 +234,7 @@ export default function Financeiro() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{tx.description}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{tx.description}</p>
                   <p className="text-xs text-muted-foreground">{tx.date} · {tx.category}</p>
                 </div>
               </div>
