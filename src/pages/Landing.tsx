@@ -133,7 +133,7 @@ export default function Landing() {
           <Badge className="bg-[hsl(160,84%,39%)]/15 text-[hsl(160,84%,39%)] border-[hsl(160,84%,39%)]/30 font-medium text-sm px-4 py-1.5">
             ✨ Comece grátis · Até 3 alunos · Sem cartão
           </Badge>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
             A Lei de 2026 chegou.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(239,84%,67%)] to-[hsl(160,84%,39%)]">
               Agora você é o Dono do seu Negócio.
