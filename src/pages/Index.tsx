@@ -478,6 +478,9 @@ const Index = () => {
         {/* Weekly Chart */}
         <WeeklyChart data={weeklyData} visible={showFinancials} />
 
+        {/* Weekly Goal */}
+        <WeeklyGoalCard completedLessons={summary?.lesson_count ?? month.lessons ?? 0} />
+
         {/* Next Lessons with Displacement Gaps */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
