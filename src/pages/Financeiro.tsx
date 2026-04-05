@@ -225,7 +225,7 @@ export default function Financeiro() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2, delay: i * 0.03 }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className={`p-2 rounded-xl ${tx.type === "entrada" ? "bg-success/10" : "bg-destructive/10"}`}>
                   {tx.type === "entrada" ? (
                     <TrendingUp className="w-4 h-4 text-success" />
