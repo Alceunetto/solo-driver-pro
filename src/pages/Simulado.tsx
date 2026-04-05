@@ -264,7 +264,7 @@ export default function Simulado() {
 
   return (
     <PageTransition>
-      <div className="container py-6 pb-24 space-y-6">
+      <div className="container px-4 py-6 pb-24 space-y-6 max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -301,7 +301,7 @@ export default function Simulado() {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Cronômetro de Baliza</p>
-                <p className={`text-4xl font-mono font-bold ${timerSeconds >= 240 ? "text-destructive" : timerSeconds >= 180 ? "text-accent" : "text-foreground"}`}>
+                <p className={`text-3xl sm:text-4xl font-mono font-bold ${timerSeconds >= 240 ? "text-destructive" : timerSeconds >= 180 ? "text-accent" : "text-foreground"}`}>
                   {formatTime(timerSeconds)}
                 </p>
               </div>

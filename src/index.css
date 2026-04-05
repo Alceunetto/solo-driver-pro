@@ -126,6 +126,10 @@
     padding-bottom: env(safe-area-inset-bottom, 0.5rem);
   }
 
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
   .shimmer {
     background: linear-gradient(
       90deg,

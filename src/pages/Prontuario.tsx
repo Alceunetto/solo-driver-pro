@@ -111,7 +111,7 @@ function StudentList() {
         </div>
       </header>
 
-      <div className="container py-4 space-y-4">
+      <div className="container px-4 py-4 space-y-4 max-w-3xl mx-auto">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -256,7 +256,7 @@ export default function Prontuario() {
         </div>
       </header>
 
-      <main className="container py-5 space-y-6">
+      <main className="container px-4 py-5 space-y-6 max-w-3xl mx-auto">
         {/* Profile Card */}
         <motion.div
           className="glass-card p-5 flex items-center gap-4"

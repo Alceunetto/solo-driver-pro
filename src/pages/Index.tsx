@@ -322,7 +322,7 @@ const Index = () => {
     <PageTransition className="min-h-screen bg-background transition-colors pb-24">
       {/* Header */}
       <header className="glass-header sticky top-0 z-50">
-        <div className="container flex items-center justify-between py-3">
+        <div className="container px-4 flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-2xl bg-primary/10 glow-primary">
               <Car className="w-6 h-6 text-primary" />
@@ -364,7 +364,7 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container py-5 space-y-6">
+      <main className="container px-4 py-5 space-y-6 max-w-4xl mx-auto">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {isFinanceLoading ? (
@@ -413,7 +413,7 @@ const Index = () => {
                       </div>
                       <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Lucro Líquido</span>
                     </div>
-                    <p className={`text-2xl font-extrabold ${profitColor} tracking-tight`}>
+                    <p className={`text-xl sm:text-2xl font-extrabold ${profitColor} tracking-tight`}>
                       {masked(`R$ ${netProfit.toLocaleString("pt-BR")}`)}
                     </p>
                     <div className="flex items-center gap-1">

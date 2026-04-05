@@ -69,7 +69,7 @@ export default function Financeiro() {
   };
 
   return (
-    <PageTransition className="container py-6 pb-24 space-y-6">
+    <PageTransition className="container px-4 py-6 pb-24 space-y-6 max-w-3xl mx-auto">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
         <motion.div
@@ -84,7 +84,7 @@ export default function Financeiro() {
             </div>
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Entradas</span>
           </div>
-          <p className="text-2xl font-extrabold text-success tracking-tight">R$ {totalEntradas.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-success tracking-tight">R$ {totalEntradas.toLocaleString()}</p>
         </motion.div>
         <motion.div
           className="glass-card p-4"
@@ -98,7 +98,7 @@ export default function Financeiro() {
             </div>
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Saídas</span>
           </div>
-          <p className="text-2xl font-extrabold text-destructive tracking-tight">R$ {totalSaidas.toLocaleString()}</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-destructive tracking-tight">R$ {totalSaidas.toLocaleString()}</p>
         </motion.div>
       </div>
 
@@ -225,7 +225,7 @@ export default function Financeiro() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2, delay: i * 0.03 }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className={`p-2 rounded-xl ${tx.type === "entrada" ? "bg-success/10" : "bg-destructive/10"}`}>
                   {tx.type === "entrada" ? (
                     <TrendingUp className="w-4 h-4 text-success" />
@@ -234,11 +234,11 @@ export default function Financeiro() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{tx.description}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{tx.description}</p>
                   <p className="text-xs text-muted-foreground">{tx.date} · {tx.category}</p>
                 </div>
               </div>
-              <p className={`text-sm font-bold ${tx.type === "entrada" ? "text-success" : "text-destructive"}`}>
+              <p className={`text-sm font-bold shrink-0 ${tx.type === "entrada" ? "text-success" : "text-destructive"}`}>
                 {tx.type === "entrada" ? "+" : "-"}R$ {tx.amount}
               </p>
             </motion.div>

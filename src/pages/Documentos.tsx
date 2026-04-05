@@ -71,9 +71,9 @@ export default function Documentos() {
   };
 
   return (
-    <div className="container py-6 pb-24 space-y-6">
+    <div className="container px-4 py-6 pb-24 space-y-6 max-w-3xl mx-auto">
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
           { label: "Total", value: stats.total, color: "text-foreground" },
           { label: "OK", value: stats.validados, color: "text-success" },
@@ -129,11 +129,11 @@ export default function Documentos() {
               const cfg = statusConfig[doc.status];
               const StatusIcon = cfg.icon;
               return (
-                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 gap-2">
                   <div className="flex items-center gap-3">
                     <FileText className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">{doc.name}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
                       {doc.uploadDate && (
                         <p className="text-xs text-muted-foreground">Enviado: {doc.uploadDate}</p>
                       )}

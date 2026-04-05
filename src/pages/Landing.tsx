@@ -133,7 +133,7 @@ export default function Landing() {
           <Badge className="bg-[hsl(160,84%,39%)]/15 text-[hsl(160,84%,39%)] border-[hsl(160,84%,39%)]/30 font-medium text-sm px-4 py-1.5">
             ✨ Comece grátis · Até 3 alunos · Sem cartão
           </Badge>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
             A Lei de 2026 chegou.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(239,84%,67%)] to-[hsl(160,84%,39%)]">
               Agora você é o Dono do seu Negócio.
@@ -387,7 +387,7 @@ export default function Landing() {
             <p className="text-[hsl(215,15%,55%)]">Comece 100% grátis. Faça upgrade quando quiser.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {/* FREE */}
             <Card className="bg-[hsl(222,30%,8%)] border-[hsl(222,20%,14%)] relative">
               <CardContent className="p-6 md:p-8 space-y-6">

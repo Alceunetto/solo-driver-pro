@@ -119,7 +119,7 @@ export default function StudentProfile() {
         </div>
       </header>
 
-      <main className="container py-5 space-y-6">
+      <main className="container px-4 py-5 space-y-6 max-w-3xl mx-auto">
         {/* Profile Card */}
         <div className="glass-card p-5 flex items-center gap-4">
           <Avatar className="w-16 h-16 border-2 border-primary/30">
