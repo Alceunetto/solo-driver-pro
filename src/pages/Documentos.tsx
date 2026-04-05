@@ -73,7 +73,7 @@ export default function Documentos() {
   return (
     <div className="container py-6 pb-24 space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
           { label: "Total", value: stats.total, color: "text-foreground" },
           { label: "OK", value: stats.validados, color: "text-success" },
