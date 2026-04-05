@@ -194,9 +194,16 @@ export function TimelineLogistica({ externalDialogOpen, onExternalDialogClose }:
       {/* Timeline */}
       <div className="space-y-1">
         {sorted.length === 0 && (
-          <div className="glass-card p-12 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Nenhuma aula neste dia. Adicione uma aula!</p>
+          <div className="glass-card p-12 text-center space-y-4">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto" />
+            <p className="text-muted-foreground">Nenhuma aula neste dia.</p>
+            <Button
+              size="lg"
+              className="gap-2 h-12 rounded-xl font-semibold"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4" /> Agendar horário para hoje
+            </Button>
           </div>
         )}
 

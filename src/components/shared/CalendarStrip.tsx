@@ -29,18 +29,18 @@ export function CalendarStrip({ selected, onChange }: CalendarStripProps) {
             type="button"
             onClick={() => onChange(day)}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-2 px-2.5 rounded-xl transition-all min-w-[40px]",
+              "flex flex-col items-center gap-0.5 py-2.5 px-3 rounded-xl transition-all min-w-[44px] min-h-[52px]",
               isSelected
                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105"
                 : isToday
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted"
+                  : "text-muted-foreground hover:bg-muted active:scale-95"
             )}
           >
-            <span className="text-[10px] font-semibold uppercase tracking-wide">
+            <span className="text-[11px] font-semibold uppercase tracking-wide">
               {DAY_LABELS[i]}
             </span>
-            <span className={cn("text-sm font-bold", isSelected && "text-primary-foreground")}>
+            <span className={cn("text-base font-bold", isSelected && "text-primary-foreground")}>
               {dayNum}
             </span>
           </button>
