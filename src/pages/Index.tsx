@@ -29,6 +29,7 @@ import { useFinance, FINANCE_QUERY_KEY, EXPENSES_QUERY_KEY } from "@/hooks/useFi
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { WeeklyGoalCard } from "@/components/shared/WeeklyGoalCard";
 import { SubscriptionPlan } from "@/types/solodrive";
 import { saveEvaluations } from "@/services/evaluationService";
 import { supabase } from "@/integrations/supabase/client";
